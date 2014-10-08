@@ -1,0 +1,28 @@
+{
+  "name": "Leaflet.Bookmarks",
+  "main": "dist/Leaflet.Bookmarks.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/w8r/Leaflet.Bookmarks",
+  "authors": [
+    "Alexander Milevski <info@w8r.name>"
+  ],
+  "description": "Leaflet plugin for user-generated bookmarks",
+  "keywords": [
+    "leaflet",
+    "bookmarks",
+    "plugin"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "src",
+    "examples"
+  ],
+  "dependencies": {
+    "Leaflet.contextmenu": "*"
+  }
+}

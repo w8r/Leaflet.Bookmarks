@@ -1,0 +1,104 @@
+.leaflet-right .leaflet-bookmarks-control {
+  margin-top: 18px;
+  margin-right: 18px;
+}
+.leaflet-bookmarks-control {
+  background: #ffffff;
+  padding: 10px 10px 12px 10px;
+  cursor: pointer;
+}
+.leaflet-bookmarks-control .icon {
+  width: 1em;
+  height: 0.8em;
+  background: #777777;
+}
+.leaflet-bookmarks-control .icon,
+.leaflet-bookmarks-control .icon:before,
+.leaflet-bookmarks-control .icon:after {
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+  content: '';
+  margin: 0;
+}
+.leaflet-bookmarks-control .icon:before,
+.leaflet-bookmarks-control .icon:after {
+  margin-top: 0.8em;
+  position: relative;
+  width: 0;
+  height: 0;
+  border-top: 0.5em solid #777777;
+}
+.leaflet-bookmarks-control .icon:before {
+  border-right: 0.5em solid transparent;
+}
+.leaflet-bookmarks-control .icon:after {
+  border-left: 0.5em solid transparent;
+}
+.leaflet-bookmarks-control:hover .icon,
+.leaflet-bookmarks-control:active .icon {
+  background: #333333;
+}
+.leaflet-bookmarks-control:hover .icon:before,
+.leaflet-bookmarks-control:active .icon:before,
+.leaflet-bookmarks-control:hover .icon:after,
+.leaflet-bookmarks-control:active .icon:after {
+  border-top-color: #333333;
+}
+.leaflet-bookmarks-control .bookmarks-list {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item {
+  cursor: pointer;
+  padding: 5px;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover {
+  background: #eeeeee;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-remove {
+  display: inline-block;
+  float: right;
+  margin-left: 6px;
+  font-size: 1.2em;
+  color: #777777;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-remove:hover {
+  color: #333333;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-name,
+.leaflet-bookmarks-control .bookmarks-list .bookmark-coords {
+  display: block;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-name {
+  font-weight: bold;
+}
+.leaflet-bookmarks-control.expanded .bookmarks-list {
+  display: block;
+}
+.leaflet-bookmarks-form {
+  padding-top: 10px;
+}
+.leaflet-bookmarks-form .leaflet-bookmarks-form-input {
+  padding-left: 5px;
+  padding-right: 5px;
+  line-height: 17px;
+}
+.leaflet-bookmarks-form .leaflet-bookmarks-form-input,
+.leaflet-bookmarks-form .leaflet-bookmarks-form-input:focus {
+  outline-color: transparent;
+  outline-style: none;
+}
+.leaflet-bookmarks-form .leaflet-bookmarks-form-submit {
+  border: 0;
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0 0 -2px -2px;
+  position: relative;
+  top: 1px;
+}
+.leaflet-bookmarks-form .leaflet-bookmarks-form-coords {
+  margin-top: 8px;
+}
