@@ -34,12 +34,23 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         position: 'topright', // chose your own if you want
         containerClass: 'leaflet-bar leaflet-bookmarks-control',
         expandedClass: 'expanded',
+
         formPopup: {
             popupClass: 'bookmarks-popup'
         },
+
         bookmarkTemplate: '<li class="{{ itemClass }}">' +
-            '<span class="name">{{ name }}</span>' +
-            '<span class="coords">{{ coords }}</span></li>',
+            '<span class="{{ removeClass }}">&times;</span>' +
+            '<span class="{{ nameClass }}">{{ data.name }}</span>' +
+            '<span class="{{ coordsClass }}">{{ data.coords }}</span>' +
+            '</li>',
+
+        bookmarkTemplateOptions: {
+            itemClass: 'bookmark-item',
+            nameClass: 'bookmark-name',
+            coordsClass: 'bookmark-coords',
+            removeClass: 'bookmark-remove'
+        },
         listClass: 'bookmarks-list',
         iconClass: 'icon',
         title: 'Bookmarks'
@@ -81,6 +92,9 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         var container = this._container = L.DomUtil.create('div',
             this.options.containerClass
         );
+        L.DomEvent
+            .disableClickPropagation(container)
+            .disableScrollPropagation(container);
         container.innerHTML = '<span class="' +
             this.options.iconClass + '"></span>';
         container.title = this.options.title;
@@ -88,6 +102,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._createList(this.options.bookmarks);
 
         L.DomEvent.on(container, 'click', this._onClick, this);
+        L.DomEvent.on(container, 'contextmenu', L.DomEvent.stopPropagation);
+
         map.on('bookmark:new', this._onBookmarkAddStart, this);
         map.on('bookmark:add', this._onBookmarkAdd, this);
 
@@ -131,11 +147,15 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             bookmark;
         for (var i = 0, len = bookmarks.length; i < len; i++) {
             bookmark = bookmarks[i];
+
+            this.options.bookmarkTemplateOptions.data = {
+                coords: this.formatCoords(bookmark.latlng),
+                name: this.formatName(bookmark.name)
+            };
+
             html += substitute(
-                this.options.bookmarkTemplate, {
-                    coords: this.formatCoords(bookmark.latlng),
-                    name: this.formatName(bookmark.name)
-                }
+                this.options.bookmarkTemplate,
+                this.options.bookmarkTemplateOptions
             );
         }
         this._list.innerHTML += html;
@@ -149,7 +169,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         if (this.options.formatCoords) {
             return this.options.formatCoords.call(this, latlng);
         } else {
-            return latlng.lat + ', ' + latlng.lng;
+            return latlng[0].toFixed(4) + ',&nbsp;' + latlng[1].toFixed(4);
         }
     },
 
@@ -183,7 +203,11 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {Event} evt
      */
     _onClick: function(evt) {
-        this.expand();
+        if (L.DomUtil.hasClass(this._container, this.options.expandedClass)) {
+            this.collapse();
+        } else {
+            this.expand();
+        }
     },
 
     /**
@@ -216,9 +240,14 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         });
     },
 
+    /**
+     * Cleans circular reference for JSON
+     * @param  {Object} bookmark
+     * @return {Object}
+     */
     _cleanBookmark: function(bookmark) {
         if (!L.Util.isArray(bookmark.latlng)) {
-            bookmark.latlng = [bookmark.lat, bookmark.lng];
+            bookmark.latlng = [bookmark.latlng.lat, bookmark.latlng.lng];
         }
 
         return bookmark;
@@ -265,11 +294,12 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         },
         generateNames: true,
         template: '<form class="{{ formClass }}">' +
-            '<div class="{{ coordsClass }}">{{ coords }}</div>' +
             '<input type="text" name="bookmark-name" ' +
             'placeholder="{{ inputPlaceholder }}" class="{{ inputClass }}">' +
             '<input type="submit" value="{{ submitText }}" ' +
-            'class="{{ submitClass }}"></form>'
+            'class="{{ submitClass }}">' +
+            '<div class="{{ coordsClass }}">{{ coords }}</div>' +
+            '</form>'
     },
 
     /**
@@ -313,9 +343,15 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         L.Popup.prototype._updateContent.call(this);
 
         var form = this._contentNode.querySelector('.' +
-            this.options.templateOptions.formClass);
+                this.options.templateOptions.formClass),
+            input = form.querySelector('.' +
+                this.options.templateOptions.inputClass);
 
         L.DomEvent.on(form, 'submit', this._onSubmit, this);
+
+        setTimeout(function() {
+            input.focus();
+        }, 250);
     },
 
     /**
@@ -351,7 +387,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         if (this.options.formatCoords) {
             return this.options.formatCoords.call(this, coords);
         } else {
-            return coords.toString()
+            return coords.lat.toFixed(4) + ',&nbsp;' + coords.lng.toFixed(4);
         }
     },
 
@@ -374,6 +410,9 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         L.Popup.prototype.onRemove.call(this, map);
     },
 
+    /**
+     * Marker drag
+     */
     _onSourceMoveStart: function() {
         this._container.style.display = 'none';
     },
@@ -636,12 +675,13 @@ module.exports = LocalStorage;
 },{}],7:[function(require,module,exports){
 /**
  * XHR storage
- * @param {String} getUrl
- * @param {String} [postUrl] omit if they are the same
+ * @param {String}  getUrl
+ * @param {String=} postUrl
+ * @param {String=} deleteUrl
  *
  * @constructor
  */
-var XHR = function(getUrl, postUrl) {
+var XHR = function(getUrl, postUrl, deleteUrl) {
 
     /**
      * @type {String}
@@ -652,6 +692,11 @@ var XHR = function(getUrl, postUrl) {
      * @type {String}
      */
     this._postUrl = postUrl || getUrl;
+
+    /**
+     * @type {String}
+     */
+    this._deleteUrl = deleteUrl || getUrl;
 };
 
 /**
@@ -680,20 +725,24 @@ XHR.prototype.setItem = function(key, item, callback) {
  * @param  {Function} callback
  */
 XHR.prototype.removeItem = function(key, callback) {
-
+    ajax.delete(this._deleteUrl, {
+        key: key
+    }, callback);
 };
 
 /**
  * @param  {String=}  prefix
  * @param  {Function} callback
  */
-XHR.prototype.getAllItems = function(prefix, callback) {};
+XHR.prototype.getAllItems = function(callback) {
+    ajax.get(this._getUrl, null, callback);
+};
 
 module.exports = XHR;
 
 },{}],8:[function(require,module,exports){
 /**
- * Substitutes {{}} in strings
+ * Substitutes {{ obj.field }} in strings
  *
  * @param  {String}  str
  * @param  {Object}  object
@@ -703,10 +752,25 @@ module.exports = XHR;
 function substitute(str, object, regexp) {
     return str.replace(regexp || (/{{([\s\S]+?)}}/g), function(match, name) {
         name = trim(name);
-        if (match.charAt(0) == '\\') {
-            return match.slice(1);
+
+        if (name.indexOf('.') === -1) {
+            if (match.charAt(0) == '\\') {
+                return match.slice(1);
+            }
+            return (object[name] != null) ? object[name] : '';
+
+        } else { // nested
+            var result = object;
+            name = name.split('.');
+            for (var i = 0, len = name.length; i < len; i++) {
+                if (name[i] in result) {
+                    result = result[name[i]];
+                } else {
+                    return '';
+                }
+            }
+            return result;
         }
-        return (object[name] != null) ? object[name] : '';
     });
 }
 
