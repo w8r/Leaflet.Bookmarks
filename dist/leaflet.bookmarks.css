@@ -4,46 +4,58 @@
 }
 .leaflet-bookmarks-control {
   background: #ffffff;
-  padding: 10px 10px 12px 10px;
+  padding: 8px;
   cursor: pointer;
 }
-.leaflet-bookmarks-control .icon {
+.leaflet-bookmarks-control .bookmarks-icon-wrapper {
+  padding: 0 3px 0 3px;
+  position: relative;
+}
+.leaflet-bookmarks-control .bookmarks-icon {
   width: 1em;
   height: 0.8em;
   background: #777777;
 }
-.leaflet-bookmarks-control .icon,
-.leaflet-bookmarks-control .icon:before,
-.leaflet-bookmarks-control .icon:after {
+.leaflet-bookmarks-control .bookmarks-icon,
+.leaflet-bookmarks-control .bookmarks-icon:before,
+.leaflet-bookmarks-control .bookmarks-icon:after {
   display: inline-block;
   cursor: pointer;
   position: relative;
   content: '';
   margin: 0;
 }
-.leaflet-bookmarks-control .icon:before,
-.leaflet-bookmarks-control .icon:after {
+.leaflet-bookmarks-control .bookmarks-icon:before,
+.leaflet-bookmarks-control .bookmarks-icon:after {
   margin-top: 0.8em;
   position: relative;
   width: 0;
   height: 0;
   border-top: 0.5em solid #777777;
 }
-.leaflet-bookmarks-control .icon:before {
+.leaflet-bookmarks-control .bookmarks-icon:before {
   border-right: 0.5em solid transparent;
 }
-.leaflet-bookmarks-control .icon:after {
+.leaflet-bookmarks-control .bookmarks-icon:after {
   border-left: 0.5em solid transparent;
 }
-.leaflet-bookmarks-control:hover .icon,
-.leaflet-bookmarks-control:active .icon {
+.leaflet-bookmarks-control:hover .bookmarks-icon,
+.leaflet-bookmarks-control:active .bookmarks-icon {
   background: #333333;
 }
-.leaflet-bookmarks-control:hover .icon:before,
-.leaflet-bookmarks-control:active .icon:before,
-.leaflet-bookmarks-control:hover .icon:after,
-.leaflet-bookmarks-control:active .icon:after {
+.leaflet-bookmarks-control:hover .bookmarks-icon:before,
+.leaflet-bookmarks-control:active .bookmarks-icon:before,
+.leaflet-bookmarks-control:hover .bookmarks-icon:after,
+.leaflet-bookmarks-control:active .bookmarks-icon:after {
   border-top-color: #333333;
+}
+.leaflet-bookmarks-control .bookmarks-header {
+  height: 1.25em;
+}
+.leaflet-bookmarks-control .bookmarks-list-wrapper {
+  overflow-y: auto;
+  margin-top: -1.25em;
+  padding-top: 1.25em;
 }
 .leaflet-bookmarks-control .bookmarks-list {
   display: none;
@@ -54,15 +66,23 @@
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item {
   cursor: pointer;
   padding: 5px;
+  border-bottom: 1px solid #eeeeee;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover {
   background: #eeeeee;
+  border-bottom: 1px solid #eeeeee;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover .bookmark-name {
+  text-decoration: underline;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover .bookmark-remove {
+  display: inline-block;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove {
-  display: inline-block;
+  display: none;
   float: right;
   margin-left: 6px;
-  font-size: 1.2em;
+  font-size: 1.5em;
   color: #777777;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove:hover {
@@ -74,6 +94,22 @@
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-name {
   font-weight: bold;
+}
+.leaflet-bookmarks-control.expanded {
+  min-width: 180px;
+}
+.leaflet-bookmarks-control.expanded .bookmarks-icon-wrapper {
+  background: #ffffff;
+  padding: 4px 3px 0.25em 7px;
+  border-radius: 0 0 0 4px;
+  position: relative;
+}
+.leaflet-bookmarks-control.expanded .bookmarks-header {
+  background: #ffffff;
+  text-align: right;
+}
+.leaflet-bookmarks-control.expanded .bookmarks-list-wrapper {
+  padding-top: 1.75em;
 }
 .leaflet-bookmarks-control.expanded .bookmarks-list {
   display: block;

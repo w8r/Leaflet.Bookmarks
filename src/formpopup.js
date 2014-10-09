@@ -24,6 +24,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
             submitText: '+'
         },
         generateNames: true,
+        generateNamesPrefix: 'Bookmark ',
         template: '<form class="{{ formClass }}">' +
             '<input type="text" name="bookmark-name" ' +
             'placeholder="{{ inputPlaceholder }}" class="{{ inputClass }}">' +
@@ -40,7 +41,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
      * @constructor
      */
     initialize: function(options, source) {
-        options.offset = this._calculateOffset(source, options)
+        options.offset = this._calculateOffset(source, {});
 
         this._latlng = source.getLatLng();
         L.Popup.prototype.initialize.call(this, options, source);
@@ -59,6 +60,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         if (options && options.offset) {
             anchor = anchor.add(options.offset);
         }
+
         return anchor;
     },
 
@@ -96,14 +98,15 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
             this.options.templateOptions.inputClass);
 
         if (input.value === '' && this.options.generateNames) {
-            input.value = unique();
+            input.value = unique(this.options.generateNamesPrefix);
         }
 
         if (input.value !== '') {
             this._map.fire('bookmark:add', {
                 data: {
                     latlng: this._source.getLatLng(),
-                    name: input.value
+                    name: input.value,
+                    id: unique()
                 }
             });
             this._close();

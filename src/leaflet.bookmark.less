@@ -1,6 +1,8 @@
 @bookmarkIconColor:      #777777;
 @bookmarkIconHoverColor: #333333;
 @bookmarkIconBg:         #ffffff;
+@bookmarkHeaderBg:       #ffffff;
+@bookmarkItemBorderTop:  #ffffff;
 @bookmarkItemHoverBg:    #eeeeee;
 
 .leaflet-right .leaflet-bookmarks-control {
@@ -10,10 +12,15 @@
 
 .leaflet-bookmarks-control {
     background: @bookmarkIconBg;
-    padding: 10px 10px 12px 10px;
+    padding: 8px;
     cursor: pointer;
 
-    .icon {
+    .bookmarks-icon-wrapper {
+        padding: 0 3px 0 3px;
+        position: relative;
+    }
+
+    .bookmarks-icon {
 
         width: 1em;
         height: 0.8em;
@@ -50,7 +57,7 @@
     &:hover,
     &:active {
 
-        .icon {
+        .bookmarks-icon {
             background: @bookmarkIconHoverColor;
 
             &:before,
@@ -58,6 +65,16 @@
                 border-top-color: @bookmarkIconHoverColor;
             }
         }
+    }
+
+    .bookmarks-header {
+        height: 1.25em;
+    }
+
+    .bookmarks-list-wrapper {
+        overflow-y: auto;
+        margin-top: -1.25em;
+        padding-top: 1.25em;
     }
 
     .bookmarks-list {
@@ -69,17 +86,27 @@
         .bookmark-item {
             cursor: pointer;
             padding: 5px;
+            border-bottom: 1px solid @bookmarkItemHoverBg;
 
             &:hover {
                 background: @bookmarkItemHoverBg;
+                border-bottom: 1px solid @bookmarkItemHoverBg;
+
+                .bookmark-name {
+                    text-decoration: underline;
+                }
+
+                .bookmark-remove {
+                    display: inline-block;
+                }
             }
         }
 
         .bookmark-remove {
-            display: inline-block;
+            display: none;
             float: right;
             margin-left: 6px;
-            font-size: 1.2em;
+            font-size: 1.5em;
             color: @bookmarkIconColor;
 
             &:hover {
@@ -97,6 +124,23 @@
 
     // list expanded
     &.expanded {
+        min-width: 180px;
+
+        .bookmarks-icon-wrapper {
+            background: @bookmarkHeaderBg;
+            padding: 4px 3px 0.25em 7px;
+            border-radius: 0 0 0 4px;
+            position: relative;
+        }
+
+        .bookmarks-header {
+            background: @bookmarkHeaderBg;
+            text-align: right;
+        }
+
+        .bookmarks-list-wrapper {
+            padding-top: 1.75em;
+        }
 
         .bookmarks-list {
             display: block;

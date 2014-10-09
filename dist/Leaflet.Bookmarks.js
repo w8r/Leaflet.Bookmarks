@@ -1,5 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
+/**
+ * Leaflet bookmarks plugin
+ *
+ * @author Alexander Milevski <info@w8r.name>
+ * @preserve
+ */
 var L = global.L || require('leaflet');
 
 L.Control.Bookmarks = require('./src/bookmarks');
@@ -11,7 +17,10 @@ var L = global.L || require('leaflet');
 var Storage = require('./storage');
 var FormPopup = require('./formpopup');
 var substitute = require('./string').substitute;
+require('./leaflet.delegate');
 
+// expose
+L.Util.template = L.Util.template || substitute;
 
 /**
  * Bookmarks control
@@ -30,16 +39,33 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     options: {
         localStorage: true,
+
+        /* you can provide access to your own storage,
+         * xhr for example, but make sure it has all
+         * required endpoints:
+         *
+         * .getItem(id, callback)
+         * .setItem(id, callback)
+         * .getAllItems(callback)
+         * .removeItem(id, callback)
+         */
+        storage: null,
         name: 'leaflet-bookmarks',
         position: 'topright', // chose your own if you want
+
+
         containerClass: 'leaflet-bar leaflet-bookmarks-control',
         expandedClass: 'expanded',
+        headerClass: 'bookmarks-header',
+        listClass: 'bookmarks-list',
+        iconClass: 'bookmarks-icon',
+        iconWrapperClass: 'bookmarks-icon-wrapper',
 
         formPopup: {
             popupClass: 'bookmarks-popup'
         },
 
-        bookmarkTemplate: '<li class="{{ itemClass }}">' +
+        bookmarkTemplate: '<li class="{{ itemClass }}" data-id="{{ data.id }}">' +
             '<span class="{{ removeClass }}">&times;</span>' +
             '<span class="{{ nameClass }}">{{ data.name }}</span>' +
             '<span class="{{ coordsClass }}">{{ data.coords }}</span>' +
@@ -51,9 +77,33 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             coordsClass: 'bookmark-coords',
             removeClass: 'bookmark-remove'
         },
-        listClass: 'bookmarks-list',
-        iconClass: 'icon',
-        title: 'Bookmarks'
+
+        title: 'Bookmarks',
+        collapseOnClick: true,
+
+        /**
+         * This you can change easily to output
+         * whatever you have stored in bookmark
+         *
+         * @type {String}
+         */
+        popupTemplate: '<div><h3>{{ name }}</h3><p>{{ latlng }}</p>',
+
+        /**
+         * Prepare your bookmark data for template.
+         * If you don't change it, the context of this
+         * function will be bookmarks control, so you can
+         * access the map or other things from here
+         *
+         * @param  {Object} bookmark
+         * @return {Object}
+         */
+        getPopupContent: function(bookmark) {
+            return substitute(this.options.popupTemplate, {
+                latlng: this.formatCoords(bookmark.latlng),
+                name: bookmark.name
+            });
+        }
     },
 
     /**
@@ -61,6 +111,12 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @constructor
      */
     initialize: function(options) {
+
+        /**
+         * Bookmarks array
+         * @type {Array}
+         */
+        this._data = [];
 
         /**
          * @type {Element}
@@ -73,13 +129,17 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._marker = null;
 
         /**
+         * @type {Element}
+         */
+        this._icon = null;
+
+        /**
          * @type {Storage}
          */
-        this._storage = this.options.localStorage ?
+        this._storage = this.options.storage ||
+            (this.options.localStorage ?
             new Storage(this.options.name, Storage.engineType.LOCALSTORAGE) :
-            new Storage(this.options.name,
-                Storage.engineType.XHR,
-                this.options.storageUrl);
+            new Storage(this.options.name, Storage.engineType.GLOBALSTORAGE));
 
         L.Util.setOptions(this, options);
         L.Control.prototype.initialize.call(this, this.options);
@@ -95,17 +155,23 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         L.DomEvent
             .disableClickPropagation(container)
             .disableScrollPropagation(container);
-        container.innerHTML = '<span class="' +
-            this.options.iconClass + '"></span>';
+        container.innerHTML = '<div class="' + this.options.headerClass +
+            '"><span class="' + this.options.iconWrapperClass + '">' +
+            '<span class="' + this.options.iconClass + '"></span></span>';
         container.title = this.options.title;
 
-        this._createList(this.options.bookmarks);
+        this._icon = container.querySelector('.' + this.options.iconClass);
+        console.log(this._icon)
 
-        L.DomEvent.on(container, 'click', this._onClick, this);
+        this._createList(this.options.bookmarks);
+        this._initLayout();
+
+        L.DomEvent.on(this._icon, 'click', this._onClick, this);
         L.DomEvent.on(container, 'contextmenu', L.DomEvent.stopPropagation);
 
         map.on('bookmark:new', this._onBookmarkAddStart, this);
         map.on('bookmark:add', this._onBookmarkAdd, this);
+        map.on('resize', this._initLayout, this);
 
         return container;
     },
@@ -116,7 +182,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     onRemove: function(map) {
         map.off('bookmark:new', this._onBookmark, this);
         map.off('bookmark:add', this._onBookmarkAdd, this);
-        L.DomEvent.off(this._container, 'click', this._onClick, this);
+        map.off('resize', this._initLayout, this);
 
         this._marker = null;
         this._popup = null;
@@ -127,13 +193,63 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {Array.<Number>|Function|null} bookmarks
      */
     _createList: function(bookmarks) {
-        this._list = L.DomUtil.create('ul', this.options.listClass, this._container);
+        this._listwrapper = L.DomUtil.create(
+            'div', 'bookmarks-list-wrapper', this._container);
+        this._list = L.DomUtil.create(
+            'ul', this.options.listClass, this._listwrapper);
+
+        console.log(this.options.bookmarkTemplateOptions.removeClass);
+
+        // remove bookmark
+        L.DomEvent.delegate(
+            this._list,
+            '.' + this.options.bookmarkTemplateOptions.removeClass,
+            'click',
+            this._onBookmarkRemoveClick,
+            this
+        );
+
+        // select bookmark
+        L.DomEvent.delegate(
+            this._list,
+            '.' + this.options.bookmarkTemplateOptions.itemClass,
+            'click',
+            this._onBookmarkClick,
+            this
+        );
+
         if (L.Util.isArray(bookmarks)) {
             this._appendItems(bookmarks);
         } else if (typeof bookmarks === 'function') {
             this._appendItems(bookmarks());
         } else {
-            this._storage.getAllItems(this._appendItems.bind(this));
+            var self = this;
+            this._storage.getAllItems(function(bookmarks) {
+                self._appendItems(bookmarks);
+            });
+        }
+    },
+
+    /**
+     * Sees that the list size is not too big
+     */
+    _initLayout: function() {
+        var size = this._map.getSize();
+        this._listwrapper.style.maxHeight = Math.min(size.y * 0.6, size.y - 100) + 'px';
+    },
+
+    /**
+     * I don't care if they're unique or not,
+     * if you do - handle this
+     *
+     * @param {Array.<Object>} bookmarks
+     * @return {Array.<Object>}
+     */
+    _filterBookmarks: function(bookmarks) {
+        if (this.options.filterBookmarks) {
+            return this.options.filterBookmarks.call(this, bookmarks);
+        } else {
+            return bookmarks;
         }
     },
 
@@ -142,15 +258,21 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {Array.<Object>} bookmarks
      */
     _appendItems: function(bookmarks) {
-        console.log(bookmarks);
         var html = '',
             bookmark;
+
+        bookmarks = this._filterBookmarks(bookmarks);
+
+        // store
+        this._data = this._data.concat(bookmarks);
+
         for (var i = 0, len = bookmarks.length; i < len; i++) {
             bookmark = bookmarks[i];
 
             this.options.bookmarkTemplateOptions.data = {
                 coords: this.formatCoords(bookmark.latlng),
-                name: this.formatName(bookmark.name)
+                name: this.formatName(bookmark.name),
+                id: bookmark.id
             };
 
             html += substitute(
@@ -214,6 +336,10 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {Object} evt
      */
     _onBookmarkAddStart: function(evt) {
+        if (this._marker) {
+            this._popup._close();
+        }
+
         this._marker = new L.Marker(evt.latlng, {
             icon: this.options.icon || new L.Icon.Default(),
             draggable: true,
@@ -235,7 +361,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     _onBookmarkAdd: function(bookmark) {
         var self = this;
         bookmark = this._cleanBookmark(bookmark.data);
-        this._storage.setItem(bookmark.name, bookmark, function(item) {
+        this._storage.setItem(bookmark.id, bookmark, function(item) {
             self._appendItems([item]);
         });
     },
@@ -259,13 +385,123 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     _onPopupClosed: function(evt) {
         this._map.removeLayer(this._marker);
+        this._marker = null;
+        this._popup = null;
+    },
+
+    /**
+     * @param  {String} id
+     * @return {Object|Null}
+     */
+    _getBookmark: function(id) {
+        for (var i = 0, len = this._data.length; i < len; i++) {
+            if (this._data[i].id === id) {
+                return this._data[i];
+            }
+        }
+        return null;
+    },
+
+    /**
+     * @param  {Object} bookmark
+     */
+    _gotoBookmark: function(bookmark) {
+        var coords = L.latLng(bookmark.latlng),
+            marker = new L.Marker(coords, {
+                icon: this.options.icon || new L.Icon.Default(),
+                riseOnHover: true
+            }).addTo(this._map);
+        //marker.bindPopup(substitute(this.options.bookmarkPopupTemplate, bookmark));
+        marker.bindPopup(this._getPopupContent(bookmark));
+        marker.on('popupclose', function() {
+            this._map.removeLayer(this);
+        });
+        this._map.setView(coords);
+
+        if (!this.options.popupOnShow) {
+            marker.openPopup();
+        }
+    },
+
+    /**
+     * @param  {Object} bookmark
+     */
+    _removeBookmark: function(bookmark) {
+        var self = this;
+        this._data.splice(this._data.indexOf(bookmark), 1);
+        this._storage.removeItem(bookmark.id, function() {
+            self._onBookmarkRemoved(bookmark);
+        });
+    },
+
+    /**
+     * @param  {Object} bookmark
+     */
+    _onBookmarkRemoved: function(bookmark) {
+        var li = this._list.querySelector('.' +
+            this.options.bookmarkTemplateOptions.itemClass +
+            "[data-id='" + bookmark.id + "']");
+        console.log(li);
+        if (li) {
+            li.parentNode.removeChild(li);
+        }
+    },
+
+    /**
+     * Gets popup content
+     * @param  {Object} bookmark
+     * @return {String}
+     */
+    _getPopupContent: function(bookmark) {
+        if (this.options.getPopupContent) {
+            return this.options.getPopupContent.call(this, bookmark);
+        } else {
+            return JSON.stringify(bookmark);
+        }
+    },
+
+    /**
+     * @param  {Event} e
+     */
+    _onBookmarkClick: function(evt) {
+        var bookmark = this._getBookmarkFromListItem(evt.delegateTarget);
+        if (bookmark) {
+            this._gotoBookmark(bookmark);
+        }
+        if (this.options.collapseOnClick) {
+            this.collapse();
+        }
+    },
+
+    /**
+     * In case you've decided to play with ids - we've got you covered
+     * @param  {Element} li
+     * @return {Object|Null}
+     */
+    _getBookmarkFromListItem: function(li) {
+        if (this.options.getBookmarkFromListItem) {
+            return this.options.getBookmarkFromListItem.call(this, li);
+        } else {
+            return this._getBookmark(li.getAttribute('data-id'));
+        }
+    },
+
+    /**
+     * @param  {Event} evt
+     */
+    _onBookmarkRemoveClick: function(evt) {
+        L.DomEvent.stopPropagation(evt);
+        var bookmark = this._getBookmarkFromListItem(evt.delegateTarget);
+        if (bookmark) {
+            this._removeBookmark(bookmark);
+        }
     }
 });
 
 module.exports = Bookmarks;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./formpopup":3,"./storage":5,"./string":8,"leaflet":undefined}],3:[function(require,module,exports){
+},{"./formpopup":3,"./leaflet.delegate":4,"./storage":6,"./string":9,"leaflet":undefined}],3:[function(require,module,exports){
 (function (global){
 var L = global.L || require('leaflet');
 var substitute = require('./string').substitute;
@@ -293,6 +529,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
             submitText: '+'
         },
         generateNames: true,
+        generateNamesPrefix: 'Bookmark ',
         template: '<form class="{{ formClass }}">' +
             '<input type="text" name="bookmark-name" ' +
             'placeholder="{{ inputPlaceholder }}" class="{{ inputClass }}">' +
@@ -309,7 +546,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
      * @constructor
      */
     initialize: function(options, source) {
-        options.offset = this._calculateOffset(source, options)
+        options.offset = this._calculateOffset(source, {});
 
         this._latlng = source.getLatLng();
         L.Popup.prototype.initialize.call(this, options, source);
@@ -328,6 +565,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         if (options && options.offset) {
             anchor = anchor.add(options.offset);
         }
+
         return anchor;
     },
 
@@ -365,14 +603,15 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
             this.options.templateOptions.inputClass);
 
         if (input.value === '' && this.options.generateNames) {
-            input.value = unique();
+            input.value = unique(this.options.generateNamesPrefix);
         }
 
         if (input.value !== '') {
             this._map.fire('bookmark:add', {
                 data: {
                     latlng: this._source.getLatLng(),
-                    name: input.value
+                    name: input.value,
+                    id: unique()
                 }
             });
             this._close();
@@ -431,7 +670,94 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 module.exports = FormPopup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./string":8,"leaflet":undefined}],4:[function(require,module,exports){
+},{"./string":9,"leaflet":undefined}],4:[function(require,module,exports){
+(function (global){
+var L = global.L || require('leaflet');
+
+// courtesy of https://github.com/component/matches-selector
+var matchesSelector = (function(ElementPrototype) {
+    var matches = ElementPrototype.matches ||
+        ElementPrototype.webkitMatchesSelector ||
+        ElementPrototype.mozMatchesSelector ||
+        ElementPrototype.msMatchesSelector ||
+        ElementPrototype.oMatchesSelector ||
+        // hello IE
+        function(selector) {
+            var node = this,
+                parent = (node.parentNode || node.document),
+                nodes = parent.querySelectorAll(selector);
+
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                if (nodes[i] == el) return true;
+            }
+            return false;
+        };
+
+    /**
+     * @param  {Element} element
+     * @param  {String} selector
+     * @return {Boolean}
+     */
+    return function(element, selector) {
+        return matches.call(element, selector);
+    };
+})(Element.prototype);
+
+/**
+ * Courtesy of https://github.com/component/closest
+ * @param  {Element} element
+ * @param  {String}  selector
+ * @param  {Boolean} checkSelf
+ * @param  {Element} root
+ * @return {Element|Null}
+ */
+function closest(element, selector, checkSelf, root) {
+    element = checkSelf ? {
+        parentNode: element
+    } : element
+
+    root = root || document;
+
+    // Make sure `element !== document` and `element != null`
+    // otherwise we get an illegal invocation
+    while ((element = element.parentNode) && element !== document) {
+        if (matchesSelector(element, selector)) {
+            return element
+        }
+        // After `matches` on the edge case that
+        // the selector matches the root
+        // (when the root is not the document)
+        if (element === root) {
+            return null;
+        }
+    }
+}
+
+/**
+ * Based on https://github.com/component/delegate
+ *
+ * @param  {Element}  el
+ * @param  {String}   selector
+ * @param  {String}   type
+ * @param  {Function} fn
+ *
+ * @return {Function}
+ */
+L.DomEvent.delegate = function(el, selector, type, fn, bind) {
+    return L.DomEvent.on(el, type, function(e) {
+        var target = e.target || e.srcElement;
+
+        console.log(e, target, selector, true, el, closest(target, selector, true, el));
+
+        e.delegateTarget = closest(target, selector, true, el);
+        if (e.delegateTarget) {
+            fn.call(bind || el, e);
+        }
+    });
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"leaflet":undefined}],5:[function(require,module,exports){
 /**
  * @type {Object}
  */
@@ -501,7 +827,7 @@ GlobalStorage.prototype.removeItem = function(key, callback) {
 
 module.exports = GlobalStorage;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (global){
 var unique = require('./string').unique;
 
@@ -595,7 +921,7 @@ Storage.prototype.getAllItems = function(callback) {
 module.exports = global.Storage = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./storage.global":4,"./storage.localstorage":6,"./storage.xhr":7,"./string":8}],6:[function(require,module,exports){
+},{"./storage.global":5,"./storage.localstorage":7,"./storage.xhr":8,"./string":9}],7:[function(require,module,exports){
 /**
  * LocalStoarge based storage
  * @constructor
@@ -672,7 +998,7 @@ LocalStorage.prototype.setItem = function(key, item, callback) {
 
 module.exports = LocalStorage;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * XHR storage
  * @param {String}  getUrl
@@ -740,7 +1066,7 @@ XHR.prototype.getAllItems = function(callback) {
 
 module.exports = XHR;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * Substitutes {{ obj.field }} in strings
  *
@@ -780,9 +1106,9 @@ function substitute(str, object, regexp) {
  *
  * @return {String}
  */
-function unique() {
+function unique(prefix) {
     var alpha = 'abcdefghijklmnopqrstuvwxyz';
-    return alpha[Math.floor(Math.random() * alpha.length)] +
+    return (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
         (new Date()).getTime().toString(16);
 }
 

@@ -37,9 +37,9 @@ function substitute(str, object, regexp) {
  *
  * @return {String}
  */
-function unique() {
+function unique(prefix) {
     var alpha = 'abcdefghijklmnopqrstuvwxyz';
-    return alpha[Math.floor(Math.random() * alpha.length)] +
+    return (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
         (new Date()).getTime().toString(16);
 }
 
