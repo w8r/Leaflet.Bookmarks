@@ -25,9 +25,6 @@
         "url": "https://github.com/w8r/Leaflet.Bookmarks/issues"
     },
     "homepage": "https://github.com/w8r/Leaflet.Bookmarks",
-    "dependencies": {
-        "Leaflet.contextmenu": "git+https://github.com/aratcliffe/Leaflet.contextmenu#e7c871822edfa602e21128338c97f56401a89e25"
-    },
     "browserify": {
         "transform": [
             "deamdify"
