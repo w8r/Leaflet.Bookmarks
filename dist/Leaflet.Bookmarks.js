@@ -534,7 +534,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
 module.exports = Bookmarks;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./formpopup":3,"./leaflet.delegate":4,"./storage":6,"./string":9,"leaflet":undefined}],3:[function(require,module,exports){
+},{"./formpopup":3,"./leaflet.delegate":4,"./storage":6,"./string":8,"leaflet":undefined}],3:[function(require,module,exports){
 (function (global){
 var L = global.L || require('leaflet');
 var substitute = require('./string').substitute;
@@ -703,7 +703,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 module.exports = FormPopup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./string":9,"leaflet":undefined}],4:[function(require,module,exports){
+},{"./string":8,"leaflet":undefined}],4:[function(require,module,exports){
 (function (global){
 var L = global.L || require('leaflet');
 
@@ -893,9 +893,9 @@ var Storage = function(name, engineType) {
  * @enum {Number}
  */
 Storage.engineType = {
-    GLOBAL: 1,
-    LOCALSTORAGE: 2,
-    XHR: 3
+    // XHR: 1, // we don't have it included
+    GLOBAL: 2,
+    LOCALSTORAGE: 3
 };
 
 /**
@@ -903,8 +903,8 @@ Storage.engineType = {
  * @typedef {Storage.Engine}
  */
 Storage.Engine = {
+    //XHR: require('./storage.xhr'),
     Global: require('./storage.global'),
-    XHR: require('./storage.xhr'),
     LocalStorage: require('./storage.localstorage')
 };
 
@@ -919,9 +919,6 @@ Storage.createEngine = function(type, prefix, args) {
         return new Storage.Engine.Global(prefix);
     } else if (type === Storage.engineType.LOCALSTORAGE) {
         return new Storage.Engine.LocalStorage(prefix);
-    } else if (type === Storage.engineType.XHR) {
-        return new Storage.Engine.XHR(
-            Array.prototype.slice.call(arguments, 1));
     }
 };
 
@@ -962,7 +959,7 @@ Storage.prototype.removeItem = function(key, callback) {
 module.exports = global.Storage = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./storage.global":5,"./storage.localstorage":7,"./storage.xhr":8,"./string":9}],7:[function(require,module,exports){
+},{"./storage.global":5,"./storage.localstorage":7,"./string":8}],7:[function(require,module,exports){
 /**
  * LocalStoarge based storage
  * @constructor
@@ -1040,74 +1037,6 @@ LocalStorage.prototype.setItem = function(key, item, callback) {
 module.exports = LocalStorage;
 
 },{}],8:[function(require,module,exports){
-/**
- * XHR storage
- * @param {String}  getUrl
- * @param {String=} postUrl
- * @param {String=} deleteUrl
- *
- * @constructor
- */
-var XHR = function(getUrl, postUrl, deleteUrl) {
-
-    /**
-     * @type {String}
-     */
-    this._getUrl = getUrl;
-
-    /**
-     * @type {String}
-     */
-    this._postUrl = postUrl || getUrl;
-
-    /**
-     * @type {String}
-     */
-    this._deleteUrl = deleteUrl || getUrl;
-};
-
-/**
- * @param  {String}   key
- * @param  {Function} callback
- */
-XHR.prototype.getItem = function(key, callback) {
-    ajax.get(this._getUrl, {
-        key: key
-    }, callback);
-};
-
-/**
- * @param {String}   key
- * @param {*}        item
- * @param {Function} callback
- */
-XHR.prototype.setItem = function(key, item, callback) {
-    ajax.post(this._postUrl, {
-        key: item
-    }, callback);
-};
-
-/**
- * @param  {String}   key
- * @param  {Function} callback
- */
-XHR.prototype.removeItem = function(key, callback) {
-    ajax.delete(this._deleteUrl, {
-        key: key
-    }, callback);
-};
-
-/**
- * @param  {String=}  prefix
- * @param  {Function} callback
- */
-XHR.prototype.getAllItems = function(callback) {
-    ajax.get(this._getUrl, null, callback);
-};
-
-module.exports = XHR;
-
-},{}],9:[function(require,module,exports){
 /**
  * Substitutes {{ obj.field }} in strings
  *

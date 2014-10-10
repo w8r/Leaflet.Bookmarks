@@ -28,9 +28,9 @@ var Storage = function(name, engineType) {
  * @enum {Number}
  */
 Storage.engineType = {
-    GLOBAL: 1,
-    LOCALSTORAGE: 2,
-    XHR: 3
+    // XHR: 1, // we don't have it included
+    GLOBAL: 2,
+    LOCALSTORAGE: 3
 };
 
 /**
@@ -38,8 +38,8 @@ Storage.engineType = {
  * @typedef {Storage.Engine}
  */
 Storage.Engine = {
+    //XHR: require('./storage.xhr'),
     Global: require('./storage.global'),
-    XHR: require('./storage.xhr'),
     LocalStorage: require('./storage.localstorage')
 };
 
@@ -54,9 +54,6 @@ Storage.createEngine = function(type, prefix, args) {
         return new Storage.Engine.Global(prefix);
     } else if (type === Storage.engineType.LOCALSTORAGE) {
         return new Storage.Engine.LocalStorage(prefix);
-    } else if (type === Storage.engineType.XHR) {
-        return new Storage.Engine.XHR(
-            Array.prototype.slice.call(arguments, 1));
     }
 };
 

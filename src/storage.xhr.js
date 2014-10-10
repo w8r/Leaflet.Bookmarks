@@ -1,35 +1,43 @@
 /**
  * XHR storage
- * @param {String}  getUrl
- * @param {String=} postUrl
- * @param {String=} deleteUrl
+ * @param {Object}  getUrl
  *
  * @constructor
  */
-var XHR = function(getUrl, postUrl, deleteUrl) {
+var XHR = function(options) {
 
     /**
-     * @type {String}
+     * @type {*}
      */
-    this._getUrl = getUrl;
+    this._transport = this.createTransport(options);
 
     /**
-     * @type {String}
+     * @type {Object}
      */
-    this._postUrl = postUrl || getUrl;
-
-    /**
-     * @type {String}
-     */
-    this._deleteUrl = deleteUrl || getUrl;
+    this.options = options;
 };
+
+/**
+ * Create transport
+ * @return {*}
+ */
+XHR.prototype.createTransport = function() {};
+
+/**
+ * Create request url
+ * @param  {String} requestType
+ * @param  {String} type
+ * @param  {String} key
+ * @return {String}
+ */
+XHR.prototype.getUrl = function(requestType, type, key) {},
 
 /**
  * @param  {String}   key
  * @param  {Function} callback
  */
 XHR.prototype.getItem = function(key, callback) {
-    ajax.get(this._getUrl, {
+    this._transport.get(this._getUrl, {
         key: key
     }, callback);
 };
@@ -40,7 +48,7 @@ XHR.prototype.getItem = function(key, callback) {
  * @param {Function} callback
  */
 XHR.prototype.setItem = function(key, item, callback) {
-    ajax.post(this._postUrl, {
+    this._transport.post(this._postUrl, {
         key: item
     }, callback);
 };
@@ -50,7 +58,7 @@ XHR.prototype.setItem = function(key, item, callback) {
  * @param  {Function} callback
  */
 XHR.prototype.removeItem = function(key, callback) {
-    ajax.delete(this._deleteUrl, {
+    this._transport.delete(this._deleteUrl, {
         key: key
     }, callback);
 };
@@ -60,7 +68,7 @@ XHR.prototype.removeItem = function(key, callback) {
  * @param  {Function} callback
  */
 XHR.prototype.getAllItems = function(callback) {
-    ajax.get(this._getUrl, null, callback);
+    this._transport.get(this._getUrl, null, callback);
 };
 
 module.exports = XHR;
