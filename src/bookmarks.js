@@ -5,7 +5,7 @@ var substitute = require('./string').substitute;
 require('./leaflet.delegate');
 
 // expose
-L.Util.template = L.Util.template || substitute;
+L.Util._template = L.Util._template || substitute;
 
 /**
  * Bookmarks control

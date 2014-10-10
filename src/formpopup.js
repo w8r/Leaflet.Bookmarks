@@ -88,6 +88,25 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     },
 
     /**
+     * Creates bookmark object from form data
+     * @return {Object}
+     */
+    _getBookmarkData: function() {
+        if (this.options.getBookmarkData) {
+            return this.options.getBookmarkData.call(this);
+        } else {
+            var input = this._contentNode.querySelector('.' +
+                this.options.templateOptions.inputClass);
+
+            return {
+                latlng: this._source.getLatLng(),
+                name: input.value,
+                id: unique()
+            };
+        }
+    },
+
+    /**
      * Form submit, dispatch eventm close popup
      * @param {Event} evt
      */
@@ -103,11 +122,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 
         if (input.value !== '') {
             this._map.fire('bookmark:add', {
-                data: {
-                    latlng: this._source.getLatLng(),
-                    name: input.value,
-                    id: unique()
-                }
+                data: this._getBookmarkData()
             });
             this._close();
         }
