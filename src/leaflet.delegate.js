@@ -1,6 +1,8 @@
 var L = global.L || require('leaflet');
 
-// courtesy of https://github.com/component/matches-selector
+/**
+ * Courtesy of https://github.com/component/matches-selector
+ */
 var matchesSelector = (function(ElementPrototype) {
     var matches = ElementPrototype.matches ||
         ElementPrototype.webkitMatchesSelector ||
@@ -31,10 +33,12 @@ var matchesSelector = (function(ElementPrototype) {
 
 /**
  * Courtesy of https://github.com/component/closest
+ *
  * @param  {Element} element
  * @param  {String}  selector
  * @param  {Boolean} checkSelf
  * @param  {Element} root
+ *
  * @return {Element|Null}
  */
 function closest(element, selector, checkSelf, root) {
@@ -70,14 +74,11 @@ function closest(element, selector, checkSelf, root) {
  * @return {Function}
  */
 L.DomEvent.delegate = function(el, selector, type, fn, bind) {
-    return L.DomEvent.on(el, type, function(e) {
-        var target = e.target || e.srcElement;
-
-        console.log(e, target, selector, true, el, closest(target, selector, true, el));
-
-        e.delegateTarget = closest(target, selector, true, el);
-        if (e.delegateTarget) {
-            fn.call(bind || el, e);
+    return L.DomEvent.on(el, type, function(evt) {
+        var target = evt.target || evt.srcElement;
+        evt.delegateTarget = closest(target, selector, true, el);
+        if (evt.delegateTarget && !evt.propagationStopped) {
+            fn.call(bind || el, evt);
         }
     });
 };

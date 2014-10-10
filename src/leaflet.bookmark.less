@@ -4,6 +4,7 @@
 @bookmarkHeaderBg:       #ffffff;
 @bookmarkItemBorderTop:  #ffffff;
 @bookmarkItemHoverBg:    #eeeeee;
+@bookmarkEmptyColor:     #777777;
 
 .leaflet-right .leaflet-bookmarks-control {
     margin-top: 18px;
@@ -85,6 +86,7 @@
 
         .bookmark-item {
             cursor: pointer;
+            transition: opacity 0.25s linear;
             padding: 5px;
             border-bottom: 1px solid @bookmarkItemHoverBg;
 
@@ -98,6 +100,20 @@
 
                 .bookmark-remove {
                     display: inline-block;
+                }
+            }
+
+            &:last-child {
+                &, &:hover { border-bottom: none; }
+            }
+
+            &.bookmarks-empty {
+                font-style: italic;
+                color: @bookmarkEmptyColor;
+
+                &, &:hover {
+                    background: none;
+                    border: none;
                 }
             }
         }

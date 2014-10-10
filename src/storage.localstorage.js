@@ -50,8 +50,8 @@ LocalStorage.prototype.getAllItems = function(callback) {
  */
 LocalStorage.prototype.removeItem = function(key, callback) {
     var self = this;
-    this._storage.getItem(key, function(item) {
-        self._storage.removeItem(this._prefix + key);
+    this.getItem(key, function(item) {
+        self._storage.removeItem(self._prefix + key);
         if (callback) {
             callback(item);
         }

@@ -8,7 +8,7 @@
         "start": "bower install && npm run watch & serve",
         "watch": "watchify -v -d -u leaflet examples/app.js -o examples/bundle.js",
         "build": "browserify -u leaflet index.js -o dist/Leaflet.Bookmarks.js",
-        "compress": "browserify -u leaflet index.js | uglifyjs -m -c drop_console=true,warnings=false > dist/Leaflet.Bookmarks.min.js"
+        "compress": "browserify -u leaflet index.js | uglifyjs --comments -m -c drop_console=true,warnings=false > dist/Leaflet.Bookmarks.min.js"
     },
     "repository": {
         "type": "git",

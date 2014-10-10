@@ -71,14 +71,19 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             '<span class="{{ coordsClass }}">{{ data.coords }}</span>' +
             '</li>',
 
+        emptyTemplate: '<li class="{{ itemClass }} {{ emptyClass }}">' +
+            '{{ data.emptyMessage }}</li>',
+
         bookmarkTemplateOptions: {
             itemClass: 'bookmark-item',
             nameClass: 'bookmark-name',
             coordsClass: 'bookmark-coords',
-            removeClass: 'bookmark-remove'
+            removeClass: 'bookmark-remove',
+            emptyClass: 'bookmarks-empty'
         },
 
         title: 'Bookmarks',
+        emptyMessage: 'No bookmarks yet',
         collapseOnClick: true,
 
         /**
@@ -158,15 +163,14 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         container.innerHTML = '<div class="' + this.options.headerClass +
             '"><span class="' + this.options.iconWrapperClass + '">' +
             '<span class="' + this.options.iconClass + '"></span></span>';
-        container.title = this.options.title;
 
         this._icon = container.querySelector('.' + this.options.iconClass);
-        console.log(this._icon)
+        this._icon.title = this.options.title;
 
         this._createList(this.options.bookmarks);
         this._initLayout();
 
-        L.DomEvent.on(this._icon, 'click', this._onClick, this);
+        L.DomEvent.on(container, 'click', this._onClick, this);
         L.DomEvent.on(container, 'contextmenu', L.DomEvent.stopPropagation);
 
         map.on('bookmark:new', this._onBookmarkAddStart, this);
@@ -198,17 +202,6 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._list = L.DomUtil.create(
             'ul', this.options.listClass, this._listwrapper);
 
-        console.log(this.options.bookmarkTemplateOptions.removeClass);
-
-        // remove bookmark
-        L.DomEvent.delegate(
-            this._list,
-            '.' + this.options.bookmarkTemplateOptions.removeClass,
-            'click',
-            this._onBookmarkRemoveClick,
-            this
-        );
-
         // select bookmark
         L.DomEvent.delegate(
             this._list,
@@ -217,6 +210,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             this._onBookmarkClick,
             this
         );
+
+        this._setEmptyListContent();
 
         if (L.Util.isArray(bookmarks)) {
             this._appendItems(bookmarks);
@@ -231,11 +226,24 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     },
 
     /**
+     * Empty list
+     */
+    _setEmptyListContent: function() {
+        this._list.innerHTML = substitute(this.options.emptyTemplate,
+            L.Util.extend(this.options.bookmarkTemplateOptions, {
+                data: {
+                    emptyMessage: this.options.emptyMessage
+                }
+            }));
+    },
+
+    /**
      * Sees that the list size is not too big
      */
     _initLayout: function() {
         var size = this._map.getSize();
-        this._listwrapper.style.maxHeight = Math.min(size.y * 0.6, size.y - 100) + 'px';
+        this._listwrapper.style.maxHeight =
+            Math.min(size.y * 0.6, size.y - 100) + 'px';
     },
 
     /**
@@ -259,8 +267,10 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     _appendItems: function(bookmarks) {
         var html = '',
+            wasEmpty = this._data.length === 0,
             bookmark;
 
+        // maybe you have something in mind?
         bookmarks = this._filterBookmarks(bookmarks);
 
         // store
@@ -280,7 +290,15 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
                 this.options.bookmarkTemplateOptions
             );
         }
-        this._list.innerHTML += html;
+
+        if (html !== '') {
+            // replace `empty` message if needed
+            if (wasEmpty) {
+                this._list.innerHTML = html;
+            } else {
+                this._list.innerHTML += html;
+            }
+        }
     },
 
     /**
@@ -325,8 +343,19 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {Event} evt
      */
     _onClick: function(evt) {
-        if (L.DomUtil.hasClass(this._container, this.options.expandedClass)) {
-            this.collapse();
+        var expanded = L.DomUtil.hasClass(
+                this._container, this.options.expandedClass),
+            target = evt.target || evt.srcElement;
+
+        if (expanded) {
+            // check if it's inside the header
+            while (target !== this._container) {
+                if (L.DomUtil.hasClass(target, this.options.headerClass)) {
+                    this.collapse();
+                    break;
+                }
+                target = target.parentNode;
+            }
         } else {
             this.expand();
         }
@@ -411,7 +440,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
                 icon: this.options.icon || new L.Icon.Default(),
                 riseOnHover: true
             }).addTo(this._map);
-        //marker.bindPopup(substitute(this.options.bookmarkPopupTemplate, bookmark));
+
         marker.bindPopup(this._getPopupContent(bookmark));
         marker.on('popupclose', function() {
             this._map.removeLayer(this);
@@ -429,7 +458,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     _removeBookmark: function(bookmark) {
         var self = this;
         this._data.splice(this._data.indexOf(bookmark), 1);
-        this._storage.removeItem(bookmark.id, function() {
+        this._storage.removeItem(bookmark.id, function(bookmark) {
             self._onBookmarkRemoved(bookmark);
         });
     },
@@ -439,11 +468,18 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     _onBookmarkRemoved: function(bookmark) {
         var li = this._list.querySelector('.' +
-            this.options.bookmarkTemplateOptions.itemClass +
-            "[data-id='" + bookmark.id + "']");
-        console.log(li);
+                this.options.bookmarkTemplateOptions.itemClass +
+                "[data-id='" + bookmark.id + "']"),
+            self = this;
+
         if (li) {
-            li.parentNode.removeChild(li);
+            L.DomUtil.setOpacity(li, 0);
+            global.setTimeout(function() {
+                li.parentNode.removeChild(li);
+                if (self._data.length === 0) {
+                    self._setEmptyListContent();
+                }
+            }, 250);
         }
     },
 
@@ -465,11 +501,19 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     _onBookmarkClick: function(evt) {
         var bookmark = this._getBookmarkFromListItem(evt.delegateTarget);
-        if (bookmark) {
-            this._gotoBookmark(bookmark);
+        if (!bookmark) {
+            return;
         }
-        if (this.options.collapseOnClick) {
-            this.collapse();
+
+        // remove button hit
+        if (L.DomUtil.hasClass(evt.target,
+            this.options.bookmarkTemplateOptions.removeClass)) {
+            this._removeBookmark(bookmark);
+        } else {
+            this._gotoBookmark(bookmark);
+            if (this.options.collapseOnClick) {
+                this.collapse();
+            }
         }
     },
 
@@ -483,17 +527,6 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             return this.options.getBookmarkFromListItem.call(this, li);
         } else {
             return this._getBookmark(li.getAttribute('data-id'));
-        }
-    },
-
-    /**
-     * @param  {Event} evt
-     */
-    _onBookmarkRemoveClick: function(evt) {
-        L.DomEvent.stopPropagation(evt);
-        var bookmark = this._getBookmarkFromListItem(evt.delegateTarget);
-        if (bookmark) {
-            this._removeBookmark(bookmark);
         }
     }
 });
@@ -674,7 +707,9 @@ module.exports = FormPopup;
 (function (global){
 var L = global.L || require('leaflet');
 
-// courtesy of https://github.com/component/matches-selector
+/**
+ * Courtesy of https://github.com/component/matches-selector
+ */
 var matchesSelector = (function(ElementPrototype) {
     var matches = ElementPrototype.matches ||
         ElementPrototype.webkitMatchesSelector ||
@@ -705,10 +740,12 @@ var matchesSelector = (function(ElementPrototype) {
 
 /**
  * Courtesy of https://github.com/component/closest
+ *
  * @param  {Element} element
  * @param  {String}  selector
  * @param  {Boolean} checkSelf
  * @param  {Element} root
+ *
  * @return {Element|Null}
  */
 function closest(element, selector, checkSelf, root) {
@@ -744,14 +781,11 @@ function closest(element, selector, checkSelf, root) {
  * @return {Function}
  */
 L.DomEvent.delegate = function(el, selector, type, fn, bind) {
-    return L.DomEvent.on(el, type, function(e) {
-        var target = e.target || e.srcElement;
-
-        console.log(e, target, selector, true, el, closest(target, selector, true, el));
-
-        e.delegateTarget = closest(target, selector, true, el);
-        if (e.delegateTarget) {
-            fn.call(bind || el, e);
+    return L.DomEvent.on(el, type, function(evt) {
+        var target = evt.target || evt.srcElement;
+        evt.delegateTarget = closest(target, selector, true, el);
+        if (evt.delegateTarget && !evt.propagationStopped) {
+            fn.call(bind || el, evt);
         }
     });
 };
@@ -914,8 +948,15 @@ Storage.prototype.getItem = function(key, callback) {
  * @param  {Function} callback
  */
 Storage.prototype.getAllItems = function(callback) {
-    var prefix = this._name;
     this._engine.getAllItems(callback);
+};
+
+/**
+ * @param  {String}   key
+ * @param  {Function} callback
+ */
+Storage.prototype.removeItem = function(key, callback) {
+    this._engine.removeItem(key, callback);
 };
 
 module.exports = global.Storage = Storage;
@@ -974,8 +1015,8 @@ LocalStorage.prototype.getAllItems = function(callback) {
  */
 LocalStorage.prototype.removeItem = function(key, callback) {
     var self = this;
-    this._storage.getItem(key, function(item) {
-        self._storage.removeItem(this._prefix + key);
+    this.getItem(key, function(item) {
+        self._storage.removeItem(self._prefix + key);
         if (callback) {
             callback(item);
         }

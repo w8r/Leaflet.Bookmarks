@@ -65,6 +65,7 @@
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item {
   cursor: pointer;
+  transition: opacity 0.25s linear;
   padding: 5px;
   border-bottom: 1px solid #eeeeee;
 }
@@ -77,6 +78,19 @@
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover .bookmark-remove {
   display: inline-block;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item:last-child,
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item:last-child:hover {
+  border-bottom: none;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item.bookmarks-empty {
+  font-style: italic;
+  color: #777777;
+}
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item.bookmarks-empty,
+.leaflet-bookmarks-control .bookmarks-list .bookmark-item.bookmarks-empty:hover {
+  background: none;
+  border: none;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove {
   display: none;

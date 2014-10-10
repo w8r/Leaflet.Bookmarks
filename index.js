@@ -1,6 +1,6 @@
 /**
  * Leaflet bookmarks plugin
- *
+ * @license MIT
  * @author Alexander Milevski <info@w8r.name>
  * @preserve
  */

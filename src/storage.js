@@ -83,8 +83,15 @@ Storage.prototype.getItem = function(key, callback) {
  * @param  {Function} callback
  */
 Storage.prototype.getAllItems = function(callback) {
-    var prefix = this._name;
     this._engine.getAllItems(callback);
+};
+
+/**
+ * @param  {String}   key
+ * @param  {Function} callback
+ */
+Storage.prototype.removeItem = function(key, callback) {
+    this._engine.removeItem(key, callback);
 };
 
 module.exports = global.Storage = Storage;
