@@ -141,7 +141,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         /**
          * @type {Storage}
          */
-        this._storage = this.options.storage ||
+        this._storage = options.storage ||
             (this.options.localStorage ?
             new Storage(this.options.name, Storage.engineType.LOCALSTORAGE) :
             new Storage(this.options.name, Storage.engineType.GLOBALSTORAGE));
