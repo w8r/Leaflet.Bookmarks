@@ -6,4 +6,4 @@
  */
 var L = global.L || require('leaflet');
 
-L.Control.Bookmarks = require('./src/bookmarks');
+L.Control.Bookmarks = module.exports = require('./src/bookmarks');
