@@ -8,7 +8,7 @@
  */
 var L = global.L || require('leaflet');
 
-L.Control.Bookmarks = require('./src/bookmarks');
+L.Control.Bookmarks = module.exports = require('./src/bookmarks');
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./src/bookmarks":2,"leaflet":undefined}],2:[function(require,module,exports){
