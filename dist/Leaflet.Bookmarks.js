@@ -980,9 +980,14 @@ module.exports = global.Storage = Storage;
  * @constructor
  */
 var LocalStorage = function(prefix) {
-    console.log(prefix);
+    /**
+     * @type {String}
+     */
     this._prefix = prefix;
 
+    /**
+     * @type {LocalStorage}
+     */
     this._storage = window.localStorage;
 };
 
