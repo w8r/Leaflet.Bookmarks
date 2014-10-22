@@ -179,6 +179,13 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     },
 
     /**
+     * @return {Array.<Object>}
+     */
+    getData: function() {
+        return this._data;
+    },
+
+    /**
      * @param  {Array.<Number>|Function|null} bookmarks
      */
     _createList: function(bookmarks) {
