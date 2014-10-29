@@ -1,6 +1,6 @@
 var L = global.L || require('leaflet');
 require('../index');
-require('Leaflet.contextmenu');
+require('../bower_components/Leaflet.contextmenu/dist/leaflet.contextmenu.js');
 
 L.Icon.Default.imagePath = "http://cdn.leafletjs.com/leaflet-0.7/images";
 

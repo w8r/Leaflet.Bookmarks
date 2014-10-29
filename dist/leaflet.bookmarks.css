@@ -2,10 +2,17 @@
   margin-top: 18px;
   margin-right: 18px;
 }
+.leaflet-right .leaflet-bookmarks-control.bookmark-added-anim {
+  margin-top: 14px;
+  margin-right: 14px;
+  padding: 12px;
+}
 .leaflet-bookmarks-control {
   background: #ffffff;
   padding: 8px;
   cursor: pointer;
+  transition: margin 0.15s ease-out, padding 0.15s ease-out;
+  -webkit-transition: margin 0.15s ease-out, padding 0.15s ease-out;
 }
 .leaflet-bookmarks-control .bookmarks-icon-wrapper {
   padding: 0 3px 0 3px;

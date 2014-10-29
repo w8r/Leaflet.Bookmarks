@@ -46,6 +46,9 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         iconClass: 'bookmarks-icon',
         iconWrapperClass: 'bookmarks-icon-wrapper',
 
+        animateClass: 'bookmark-added-anim',
+        animateDuration: 150,
+
         formPopup: {
             popupClass: 'bookmarks-popup'
         },
@@ -102,6 +105,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     initialize: function(options) {
 
+        options = options || {};
+
         /**
          * Bookmarks array
          * @type {Array}
@@ -122,6 +127,11 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
          * @type {Element}
          */
         this._icon = null;
+
+        /**
+         * @type {Boolean}
+         */
+        this._isCollapsed = true;
 
         /**
          * @type {Storage}
@@ -291,6 +301,15 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
                 this._list.innerHTML += html;
             }
         }
+
+        if (this._isCollapsed) {
+            var container = this._container,
+                className = this.options.animateClass;
+            container.classList.add(className);
+            window.setTimeout(function() {
+                container.classList.remove(className);
+            }, this.options.animateDuration);
+        }
     },
 
     /**
@@ -322,6 +341,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     expand: function() {
         L.DomUtil.addClass(this._container, this.options.expandedClass);
+        this._isCollapsed = false;
     },
 
     /**
@@ -329,6 +349,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     collapse: function() {
         L.DomUtil.removeClass(this._container, this.options.expandedClass);
+        this._isCollapsed = true;
     },
 
     /**

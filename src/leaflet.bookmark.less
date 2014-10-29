@@ -9,12 +9,21 @@
 .leaflet-right .leaflet-bookmarks-control {
     margin-top: 18px;
     margin-right: 18px;
+
+    // bookmark added animation
+    &.bookmark-added-anim {
+        margin-top: 14px;
+        margin-right: 14px;
+        padding: 12px;
+    }
 }
 
 .leaflet-bookmarks-control {
     background: @bookmarkIconBg;
     padding: 8px;
     cursor: pointer;
+    transition: margin 0.15s ease-out, padding 0.15s ease-out;
+    -webkit-transition: margin 0.15s ease-out, padding 0.15s ease-out;
 
     .bookmarks-icon-wrapper {
         padding: 0 3px 0 3px;
