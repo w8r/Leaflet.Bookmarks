@@ -534,7 +534,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         }
 
         // remove button hit
-        if (L.DomUtil.hasClass(evt.target,
+        if (L.DomUtil.hasClass(evt.target || evt.srcElement,
             this.options.bookmarkTemplateOptions.removeClass)) {
             this._removeBookmark(bookmark);
         } else {
