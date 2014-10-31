@@ -16,7 +16,7 @@ var matchesSelector = (function(ElementPrototype) {
                 nodes = parent.querySelectorAll(selector);
 
             for (var i = 0, len = nodes.length; i < len; ++i) {
-                if (nodes[i] == el) return true;
+                if (nodes[i] == node) return true;
             }
             return false;
         };
