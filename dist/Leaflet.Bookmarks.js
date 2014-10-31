@@ -1044,7 +1044,7 @@ LocalStorage.prototype.getAllItems = function(callback) {
     var items = [],
         prefixLength = this._prefix.length;
     for (var key in this._storage) {
-        if (this._storage.hasOwnProperty(key) &&
+        if (this._storage.getItem(key) !== null &&
             key.indexOf(this._prefix) === 0) {
             this.getItem(key.substring(prefixLength), function(item) {
                 items.push(item);
