@@ -7,8 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "bower install && npm run watch & serve -p 3001",
         "watch": "watchify -v -d examples/app.js -o examples/bundle.js",
-        "build": "browserify -u leaflet index.js -o dist/Leaflet.Bookmarks.js",
-        "compress": "browserify -u leaflet index.js | uglifyjs --comments -m -c drop_console=true,warnings=false > dist/Leaflet.Bookmarks.min.js"
+        "build": "browserify -s Leaflet.Bookmarks -u leaflet index.js -o dist/Leaflet.Bookmarks.js",
+        "compress": "browserify -s Leaflet.Bookmarks -u leaflet index.js | uglifyjs --comments -m -c drop_console=true,warnings=false > dist/Leaflet.Bookmarks.min.js"
     },
     "repository": {
         "type": "git",
