@@ -96,6 +96,7 @@
         .bookmark-item {
             cursor: pointer;
             transition: opacity 0.25s linear;
+            -webkit-transition: opacity 0.25s linear;
             padding: 5px;
             border-bottom: 1px solid @bookmarkItemHoverBg;
 
@@ -108,7 +109,8 @@
                 }
 
                 .bookmark-remove {
-                    display: inline-block;
+                    opacity: 0.6;
+                    filter: alpha(opacity=60);
                 }
             }
 
@@ -128,14 +130,20 @@
         }
 
         .bookmark-remove {
-            display: none;
+            display: inline-block;
             float: right;
             margin-left: 6px;
             font-size: 1.5em;
             color: @bookmarkIconColor;
+            opacity: 0;
+            filter: alpha(opacity=0);
+            transition: opacity 0.15s linear;
+            -webkit-transition: opacity 0.15s linear;
 
             &:hover {
                 color: @bookmarkIconHoverColor;
+                opacity: 1;
+                filter: alpha(opacity=100);
             }
         }
 
