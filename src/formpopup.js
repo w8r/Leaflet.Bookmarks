@@ -71,7 +71,10 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     _updateContent: function() {
         this._content = substitute(this.options.template,
             L.Util.extend({}, this.options.templateOptions, {
-                coords: this.formatCoords(this._source.getLatLng())
+                coords: this.formatCoords(
+                    this._source.getLatLng(),
+                    this._map.getZoom()
+                )
             }));
         L.Popup.prototype._updateContent.call(this);
 
@@ -100,6 +103,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 
             return {
                 latlng: this._source.getLatLng(),
+                zoom: this._map.getZoom(),
                 name: input.value,
                 id: unique()
             };
@@ -121,22 +125,28 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         }
 
         if (input.value !== '') {
-            this._map.fire('bookmark:add', {
-                data: this._getBookmarkData()
+            var bookmark = this._getBookmarkData(),
+                map = this._map;
+
+            map.fire('bookmark:add', {
+                data: bookmark
             });
+
             this._close();
         }
     },
 
     /**
      * @param  {L.LatLng} coords
+     * @param  {Number=}  zoom
      * @return {String}
      */
-    formatCoords: function(coords) {
+    formatCoords: function(coords, zoom) {
         if (this.options.formatCoords) {
-            return this.options.formatCoords.call(this, coords);
+            return this.options.formatCoords.call(this, coords, zoom);
         } else {
-            return coords.lat.toFixed(4) + ',&nbsp;' + coords.lng.toFixed(4);
+            return [coords.lat.toFixed(4), coords.lng.toFixed(4), zoom]
+                .join(',&nbsp;');
         }
     },
 

@@ -73,6 +73,7 @@
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item {
   cursor: pointer;
   transition: opacity 0.25s linear;
+  -webkit-transition: opacity 0.25s linear;
   padding: 5px;
   border-bottom: 1px solid #eeeeee;
 }
@@ -84,7 +85,8 @@
   text-decoration: underline;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item:hover .bookmark-remove {
-  display: inline-block;
+  opacity: 0.6;
+  filter: alpha(opacity=60);
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item:last-child,
 .leaflet-bookmarks-control .bookmarks-list .bookmark-item:last-child:hover {
@@ -100,14 +102,20 @@
   border: none;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove {
-  display: none;
+  display: inline-block;
   float: right;
   margin-left: 6px;
   font-size: 1.5em;
   color: #777777;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  transition: opacity 0.15s linear;
+  -webkit-transition: opacity 0.15s linear;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove:hover {
   color: #333333;
+  opacity: 1;
+  filter: alpha(opacity=100);
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-name,
 .leaflet-bookmarks-control .bookmarks-list .bookmark-coords {

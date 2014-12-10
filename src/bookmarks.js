@@ -73,6 +73,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         title: 'Bookmarks',
         emptyMessage: 'No bookmarks yet',
         collapseOnClick: true,
+        popupOnShow: true,
 
         /**
          * This you can change easily to output
@@ -80,7 +81,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
          *
          * @type {String}
          */
-        popupTemplate: '<div><h3>{{ name }}</h3><p>{{ latlng }}</p>',
+        popupTemplate: '<div><h3>{{ name }}</h3><p>{{ latlng }}, {{ zoom }}</p>',
 
         /**
          * Prepare your bookmark data for template.
@@ -94,7 +95,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         getPopupContent: function(bookmark) {
             return substitute(this.options.popupTemplate, {
                 latlng: this.formatCoords(bookmark.latlng),
-                name: bookmark.name
+                name: bookmark.name,
+                zoom: this._map.getZoom()
             });
         }
     },
@@ -138,8 +140,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
          */
         this._storage = options.storage ||
             (this.options.localStorage ?
-            new Storage(this.options.name, Storage.engineType.LOCALSTORAGE) :
-            new Storage(this.options.name, Storage.engineType.GLOBALSTORAGE));
+                new Storage(this.options.name, Storage.engineType.LOCALSTORAGE) :
+                new Storage(this.options.name, Storage.engineType.GLOBALSTORAGE));
 
         L.Util.setOptions(this, options);
         L.Control.prototype.initialize.call(this, this.options);
@@ -165,12 +167,14 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._createList(this.options.bookmarks);
         this._initLayout();
 
-        L.DomEvent.on(container, 'click', this._onClick, this);
-        L.DomEvent.on(container, 'contextmenu', L.DomEvent.stopPropagation);
+        L.DomEvent
+            .on(container, 'click', this._onClick, this)
+            .on(container, 'contextmenu', L.DomEvent.stopPropagation);
 
-        map.on('bookmark:new', this._onBookmarkAddStart, this);
-        map.on('bookmark:add', this._onBookmarkAdd, this);
-        map.on('resize', this._initLayout, this);
+        map.on('bookmark:new', this._onBookmarkAddStart, this)
+            .on('bookmark:add', this._onBookmarkAdd, this)
+            .on('bookmark:show', this._onBookmarkShow, this)
+            .on('resize', this._initLayout, this);
 
         return container;
     },
@@ -179,9 +183,10 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @param  {L.Map} map
      */
     onRemove: function(map) {
-        map.off('bookmark:new', this._onBookmark, this);
-        map.off('bookmark:add', this._onBookmarkAdd, this);
-        map.off('resize', this._initLayout, this);
+        map.off('bookmark:new', this._onBookmark, this)
+            .off('bookmark:add', this._onBookmarkAdd, this)
+            .off('bookmark:show', this._onBookmarkShow, this)
+            .off('resize', this._initLayout, this);
 
         this._marker = null;
         this._popup = null;
@@ -284,6 +289,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
             this.options.bookmarkTemplateOptions.data = {
                 coords: this.formatCoords(bookmark.latlng),
                 name: this.formatName(bookmark.name),
+                zoom: bookmark.zoom,
                 id: bookmark.id
             };
 
@@ -363,6 +369,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         if (expanded) {
             // check if it's inside the header
             while (target !== this._container) {
+                console.log(target)
                 if (L.DomUtil.hasClass(target, this.options.headerClass)) {
                     this.collapse();
                     break;
@@ -406,6 +413,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._storage.setItem(bookmark.id, bookmark, function(item) {
             self._appendItems([item]);
         });
+        this._showBookmark(bookmark);
     },
 
     /**
@@ -445,9 +453,17 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     },
 
     /**
+     * @param  {Object} evt
+     */
+    _onBookmarkShow: function(evt) {
+        this._gotoBookmark(evt.data);
+    },
+
+    /**
+     * Shows bookmark, nothing else
      * @param  {Object} bookmark
      */
-    _gotoBookmark: function(bookmark) {
+    _showBookmark: function(bookmark) {
         var coords = L.latLng(bookmark.latlng),
             marker = new L.Marker(coords, {
                 icon: this.options.icon || new L.Icon.Default(),
@@ -458,11 +474,18 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         marker.on('popupclose', function() {
             this._map.removeLayer(this);
         });
-        this._map.setView(coords);
 
-        if (!this.options.popupOnShow) {
+        if (this.options.popupOnShow) {
             marker.openPopup();
         }
+    },
+
+    /**
+     * @param  {Object} bookmark
+     */
+    _gotoBookmark: function(bookmark) {
+        this._map.setView(bookmark.latlng, bookmark.zoom);
+        this._showBookmark(bookmark);
     },
 
     /**
@@ -520,10 +543,12 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
 
         // remove button hit
         if (L.DomUtil.hasClass(evt.target || evt.srcElement,
-            this.options.bookmarkTemplateOptions.removeClass)) {
+                this.options.bookmarkTemplateOptions.removeClass)) {
             this._removeBookmark(bookmark);
         } else {
-            this._gotoBookmark(bookmark);
+            this._map.fire('bookmark:show', {
+                data: bookmark
+            });
             if (this.options.collapseOnClick) {
                 this.collapse();
             }
