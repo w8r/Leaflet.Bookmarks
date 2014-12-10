@@ -60,6 +60,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         listClass: 'bookmarks-list',
         iconClass: 'bookmarks-icon',
         iconWrapperClass: 'bookmarks-icon-wrapper',
+        listWrapperClass: 'bookmarks-list-wrapper',
 
         animateClass: 'bookmark-added-anim',
         animateDuration: 150,
@@ -220,7 +221,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     _createList: function(bookmarks) {
         this._listwrapper = L.DomUtil.create(
-            'div', 'bookmarks-list-wrapper', this._container);
+            'div', this.options.listWrapperClass, this._container);
         this._list = L.DomUtil.create(
             'ul', this.options.listClass, this._listwrapper);
 
@@ -384,8 +385,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         if (expanded) {
             // check if it's inside the header
             while (target !== this._container) {
-                console.log(target)
-                if (L.DomUtil.hasClass(target, this.options.headerClass)) {
+                if (L.DomUtil.hasClass(target, this.options.headerClass) ||
+                    L.DomUtil.hasClass(target, this.options.listWrapperClass)) {
                     this.collapse();
                     break;
                 }
