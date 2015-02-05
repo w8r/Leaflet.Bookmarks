@@ -1,5 +1,5 @@
 {
-  "name": "Leaflet.Bookmarks",
+  "name": "leaflet-bookmarks",
   "main": [
     "dist/Leaflet.Bookmarks.js",
     "dist/Leaflet.Bookmarks.min.js",
