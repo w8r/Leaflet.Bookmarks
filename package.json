@@ -1,6 +1,6 @@
 {
   "name": "leaflet-bookmarks",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Leaflet plugin for user-generated bookmarks",
   "main": "index.js",
   "scripts": {
