@@ -78,6 +78,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         emptyTemplate: '<li class="{{ itemClass }} {{ emptyClass }}">' +
             '{{ data.emptyMessage }}</li>',
 
+        dividerTemplate: '<li class="divider"></li>',
+
         bookmarkTemplateOptions: {
             itemClass: 'bookmark-item',
             nameClass: 'bookmark-name',
@@ -213,7 +215,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      * @return {Array.<Object>}
      */
     getData: function() {
-        return this._data;
+        return this._filterBookmarksOutput(this._data);
     },
 
     /**
@@ -285,6 +287,20 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     },
 
     /**
+     * Filter bookmarks for output. This one allows you to save dividers as well
+     *
+     * @param {Array.<Object>} bookmarks
+     * @return {Array.<Object>}
+     */
+    _filterBookmarksOutput: function(bookmarks) {
+        if (this.options.filterBookmarksOutput) {
+            return this.options.filterBookmarksOutput.call(this, bookmarks);
+        } else {
+            return bookmarks;
+        }
+    },
+
+    /**
      * Append list items(render)
      * @param  {Array.<Object>} bookmarks
      */
@@ -300,19 +316,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         this._data = this._data.concat(bookmarks);
 
         for (var i = 0, len = bookmarks.length; i < len; i++) {
-            bookmark = bookmarks[i];
-
-            this.options.bookmarkTemplateOptions.data = {
-                coords: this.formatCoords(bookmark.latlng),
-                name: this.formatName(bookmark.name),
-                zoom: bookmark.zoom,
-                id: bookmark.id
-            };
-
-            html += substitute(
-                this.options.bookmarkTemplate,
-                this.options.bookmarkTemplateOptions
-            );
+            html += this._renderBookmarkItem(bookmarks[i]);
         }
 
         if (html !== '') {
@@ -332,6 +336,39 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
                 container.classList.remove(className);
             }, this.options.animateDuration);
         }
+    },
+
+    /**
+     * Render single bookmark item
+     * @param  {Object} bookmark
+     * @return {String}
+     */
+    _renderBookmarkItem: function(bookmark) {
+        if (bookmark.divider) {
+            return substitute(this.options.dividerTemplate, bookmark);
+        }
+
+        this.options.bookmarkTemplateOptions.data =
+            this._getBookmarkDataForTemplate(bookmark);
+
+        return substitute(
+            this.options.bookmarkTemplate,
+            this.options.bookmarkTemplateOptions
+        );
+    },
+
+    /**
+     * Extracts data and style expressions for item template
+     * @param  {Object} bookmark
+     * @return {Object}
+     */
+    _getBookmarkDataForTemplate: function(bookmark) {
+        return {
+            coords: this.formatCoords(bookmark.latlng),
+            name: this.formatName(bookmark.name),
+            zoom: bookmark.zoom,
+            id: bookmark.id
+        };
     },
 
     /**

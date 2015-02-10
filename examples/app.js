@@ -21,5 +21,5 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         '<a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-var bookmarksControl = new L.Control.Bookmarks();
+var bookmarksControl = global.bookmarksControl = new L.Control.Bookmarks();
 map.addControl(bookmarksControl);
