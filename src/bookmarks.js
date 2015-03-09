@@ -546,6 +546,10 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
                 "[data-id='" + bookmark.id + "']"),
             self = this;
 
+        this._map.fire('bookmark:removed', {
+            data: bookmark
+        });
+
         if (li) {
             L.DomUtil.setOpacity(li, 0);
             global.setTimeout(function() {
@@ -578,6 +582,7 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         if (!bookmark) {
             return;
         }
+        L.DomEvent.stopPropagation(evt);
 
         // remove button hit
         if (L.DomUtil.hasClass(evt.target || evt.srcElement,
@@ -604,6 +609,76 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         } else {
             return this._getBookmark(li.getAttribute('data-id'));
         }
+    },
+
+    /**
+     * GeoJSON feature out of a bookmark
+     * @param  {Object} bookmark
+     * @return {Object}
+     */
+    bookmarkToFeature: function(bookmark) {
+        var coords = this._getBookmarkCoords(bookmark);
+        bookmark = JSON.parse(JSON.stringify(bookmark)); // quick copy
+        delete bookmark.latlng;
+
+        return L.GeoJSON.getFeature({
+            feature: {
+                type: 'Feature',
+                id: bookmark.id,
+                properties: bookmark
+            }
+        }, {
+            type: 'Point',
+            coordinates: coords
+        });
+    },
+
+    /**
+     * @param  {Object} bookmark
+     * @return {Array.<Number>}
+     */
+    _getBookmarkCoords: function(bookmark) {
+        if (bookmark.latlng instanceof L.LatLng) {
+            return [bookmark.latlng.lat, bookmark.latlng.lng];
+        } else {
+            return bookmark.latlng.reverse();
+        }
+    },
+
+    /**
+     * Read bookmarks from GeoJSON FeatureCollectio
+     * @param  {Object} geojson
+     * @return {Object}
+     */
+    fromGeoJSON: function(geojson) {
+        var bookmarks = [];
+        for (var i = 0, len = geojson.features.length; i < len; i++) {
+            var bookmark = geojson.features[i];
+            if (!bookmark.properties.divider) {
+                bookmark.properties.latlng = bookmark.geometry.coordinates.concat().reverse();
+            }
+            bookmarks.push(bookmark.properties);
+        }
+        return bookmarks;
+    },
+
+    /**
+     * @return {Object}
+     */
+    toGeoJSON: function() {
+        var control = this;
+        return {
+            type: 'FeatureCollection',
+            features: (function(data) {
+                var result = [];
+                for (var i = 0, len = data.length; i < len; i++) {
+                    if (!data[i].divider) {
+                        result.push(control.bookmarkToFeature(data[i]));
+                    }
+                }
+                return result;
+            })(this._data)
+        };
     }
 });
 
