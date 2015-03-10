@@ -10,10 +10,10 @@ var data = {};
  */
 var GlobalStorage = function(prefix) {
 
-    /**
-     * @type {String}
-     */
-    this._prefix = prefix;
+  /**
+   * @type {String}
+   */
+  this._prefix = prefix;
 };
 
 /**
@@ -21,7 +21,7 @@ var GlobalStorage = function(prefix) {
  * @param  {Function} callback
  */
 GlobalStorage.prototype.getItem = function(key, callback) {
-    callback(data[this._prefix + key]);
+  callback(data[this._prefix + key]);
 };
 
 /**
@@ -30,21 +30,21 @@ GlobalStorage.prototype.getItem = function(key, callback) {
  * @param {Function} callback
  */
 GlobalStorage.prototype.setItem = function(key, item, callback) {
-    data[this._prefix + key] = item;
-    callback(item);
+  data[this._prefix + key] = item;
+  callback(item);
 };
 
 /**
  * @param  {Function} callback
  */
 GlobalStorage.prototype.getAllItems = function(callback) {
-    var items = [];
-    for (var key in data) {
-        if (data.hasOwnProperty(key) && key.indexOf(this_prefix) === 0) {
-            items.push(data[key]);
-        }
+  var items = [];
+  for (var key in data) {
+    if (data.hasOwnProperty(key) && key.indexOf(this_prefix) === 0) {
+      items.push(data[key]);
     }
-    callback(items);
+  }
+  callback(items);
 };
 
 /**
@@ -52,17 +52,17 @@ GlobalStorage.prototype.getAllItems = function(callback) {
  * @param  {Function} callback
  */
 GlobalStorage.prototype.removeItem = function(key, callback) {
-    var self = this;
-    this.getItem(key, function(item) {
-        if (item) {
-            delete data[this._prefix + key];
-        } else {
-            item = null;
-        }
-        if (callback) {
-            callback(item);
-        }
-    });
+  var self = this;
+  this.getItem(key, function(item) {
+    if (item) {
+      delete data[this._prefix + key];
+    } else {
+      item = null;
+    }
+    if (callback) {
+      callback(item);
+    }
+  });
 };
 
 module.exports = GlobalStorage;

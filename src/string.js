@@ -7,28 +7,28 @@
  * @return {String}
  */
 function substitute(str, object, regexp) {
-    return str.replace(regexp || (/{{([\s\S]+?)}}/g), function(match, name) {
-        name = trim(name);
+  return str.replace(regexp || (/{{([\s\S]+?)}}/g), function(match, name) {
+    name = trim(name);
 
-        if (name.indexOf('.') === -1) {
-            if (match.charAt(0) == '\\') {
-                return match.slice(1);
-            }
-            return (object[name] != null) ? object[name] : '';
+    if (name.indexOf('.') === -1) {
+      if (match.charAt(0) == '\\') {
+        return match.slice(1);
+      }
+      return (object[name] != null) ? object[name] : '';
 
-        } else { // nested
-            var result = object;
-            name = name.split('.');
-            for (var i = 0, len = name.length; i < len; i++) {
-                if (name[i] in result) {
-                    result = result[name[i]];
-                } else {
-                    return '';
-                }
-            }
-            return result;
+    } else { // nested
+      var result = object;
+      name = name.split('.');
+      for (var i = 0, len = name.length; i < len; i++) {
+        if (name[i] in result) {
+          result = result[name[i]];
+        } else {
+          return '';
         }
-    });
+      }
+      return result;
+    }
+  });
 }
 
 /**
@@ -38,9 +38,9 @@ function substitute(str, object, regexp) {
  * @return {String}
  */
 function unique(prefix) {
-    var alpha = 'abcdefghijklmnopqrstuvwxyz';
-    return (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
-        (new Date()).getTime().toString(16);
+  var alpha = 'abcdefghijklmnopqrstuvwxyz';
+  return (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
+    (new Date()).getTime().toString(16);
 }
 
 /**
@@ -49,7 +49,7 @@ function unique(prefix) {
  * @return {String}
  */
 function trim(str) {
-    return str.replace(/^\s+|\s+$/g, '');
+  return str.replace(/^\s+|\s+$/g, '');
 }
 
 /**
@@ -58,12 +58,12 @@ function trim(str) {
  * @return {String}
  */
 function clean(str) {
-    return trim(str.replace(/\s+/g, ' '));
+  return trim(str.replace(/\s+/g, ' '));
 }
 
 module.exports = {
-    substitute: substitute,
-    trim: trim,
-    clean: clean,
-    unique: unique
+  substitute: substitute,
+  trim: trim,
+  clean: clean,
+  unique: unique
 };

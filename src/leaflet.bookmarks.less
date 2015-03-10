@@ -173,7 +173,6 @@
         }
 
         .bookmarks-header {
-            background: @bookmarkHeaderBg;
             text-align: right;
         }
 
@@ -182,6 +181,67 @@
         }
 
         .bookmarks-list {
+            display: block;
+        }
+    }
+}
+
+.leaflet-bookmarks-to-left {
+    &.expanded {}
+}
+
+.leaflet-bookmarks-to-right {
+
+    .bookmarks-header {
+        padding: 0;
+        text-align: center;
+        font-size: 10px;
+    }
+
+    .bookmarks-icon-wrapper {
+        padding: 0;
+    }
+
+    .bookmarks-container {
+        position: absolute;
+        top: -100%;
+        left: 100%;
+        z-index: 100;
+        display: none;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0 5px 0;
+        margin: 2px 0 0 6px;
+        text-align: left;
+        background-color: @bookmarkHeaderBg;
+        border: 1px solid @bookmarkItemHoverBg;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        background-clip: padding-box;
+    }
+
+    &,
+    &.expanded {
+        width: 10px;
+        height: 10px;
+    }
+
+    &.expanded {
+        min-width: 0;
+        background-color: @bookmarkItemHoverBg;
+
+        .bookmarks-list-wrapper {
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .bookmarks-icon-wrapper {
+            padding: 0;
+            background: transparent;
+        }
+
+        .bookmarks-container {
             display: block;
         }
     }

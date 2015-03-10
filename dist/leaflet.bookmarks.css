@@ -139,13 +139,58 @@
   position: relative;
 }
 .leaflet-bookmarks-control.expanded .bookmarks-header {
-  background: #ffffff;
   text-align: right;
 }
 .leaflet-bookmarks-control.expanded .bookmarks-list-wrapper {
   padding-top: 1.75em;
 }
 .leaflet-bookmarks-control.expanded .bookmarks-list {
+  display: block;
+}
+.leaflet-bookmarks-to-right .bookmarks-header {
+  padding: 0;
+  text-align: center;
+  font-size: 10px;
+}
+.leaflet-bookmarks-to-right .bookmarks-icon-wrapper {
+  padding: 0;
+}
+.leaflet-bookmarks-to-right .bookmarks-container {
+  position: absolute;
+  top: -100%;
+  left: 100%;
+  z-index: 100;
+  display: none;
+  float: left;
+  min-width: 160px;
+  padding: 5px 0 5px 0;
+  margin: 2px 0 0 6px;
+  text-align: left;
+  background-color: #ffffff;
+  border: 1px solid #eeeeee;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  background-clip: padding-box;
+}
+.leaflet-bookmarks-to-right,
+.leaflet-bookmarks-to-right.expanded {
+  width: 10px;
+  height: 10px;
+}
+.leaflet-bookmarks-to-right.expanded {
+  min-width: 0;
+  background-color: #eeeeee;
+}
+.leaflet-bookmarks-to-right.expanded .bookmarks-list-wrapper {
+  margin-top: 0;
+  padding-top: 0;
+}
+.leaflet-bookmarks-to-right.expanded .bookmarks-icon-wrapper {
+  padding: 0;
+  background: transparent;
+}
+.leaflet-bookmarks-to-right.expanded .bookmarks-container {
   display: block;
 }
 .leaflet-bookmarks-form {

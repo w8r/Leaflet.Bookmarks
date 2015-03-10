@@ -6,21 +6,21 @@ var unique = require('./string').unique;
  */
 var Storage = function(name, engineType) {
 
-    if (typeof name !== 'string') {
-        engineType = name;
-        name = unique();
-    }
+  if (typeof name !== 'string') {
+    engineType = name;
+    name = unique();
+  }
 
-    /**
-     * @type {String}
-     */
-    this._name = name;
+  /**
+   * @type {String}
+   */
+  this._name = name;
 
-    /**
-     * @type {Storage.Engine}
-     */
-    this._engine = Storage.createEngine(engineType,
-        this._name, Array.prototype.slice.call(arguments, 2));
+  /**
+   * @type {Storage.Engine}
+   */
+  this._engine = Storage.createEngine(engineType,
+    this._name, Array.prototype.slice.call(arguments, 2));
 };
 
 /**
@@ -28,9 +28,9 @@ var Storage = function(name, engineType) {
  * @enum {Number}
  */
 Storage.engineType = {
-    // XHR: 1, // we don't have it included
-    GLOBAL: 2,
-    LOCALSTORAGE: 3
+  // XHR: 1, // we don't have it included
+  GLOBAL: 2,
+  LOCALSTORAGE: 3
 };
 
 /**
@@ -38,9 +38,9 @@ Storage.engineType = {
  * @typedef {Storage.Engine}
  */
 Storage.Engine = {
-    //XHR: require('./storage.xhr'),
-    Global: require('./storage.global'),
-    LocalStorage: require('./storage.localstorage')
+  //XHR: require('./storage.xhr'),
+  Global: require('./storage.global'),
+  LocalStorage: require('./storage.localstorage')
 };
 
 /**
@@ -50,11 +50,11 @@ Storage.Engine = {
  * @return {Storage.Engine}
  */
 Storage.createEngine = function(type, prefix, args) {
-    if (type === Storage.engineType.GLOBAL) {
-        return new Storage.Engine.Global(prefix);
-    } else if (type === Storage.engineType.LOCALSTORAGE) {
-        return new Storage.Engine.LocalStorage(prefix);
-    }
+  if (type === Storage.engineType.GLOBAL) {
+    return new Storage.Engine.Global(prefix);
+  } else if (type === Storage.engineType.LOCALSTORAGE) {
+    return new Storage.Engine.LocalStorage(prefix);
+  }
 };
 
 /**
@@ -63,8 +63,8 @@ Storage.createEngine = function(type, prefix, args) {
  * @param {Function} callback
  */
 Storage.prototype.setItem = function(key, item, callback) {
-    this._engine.setItem(key, item, callback);
-    return this;
+  this._engine.setItem(key, item, callback);
+  return this;
 };
 
 /**
@@ -72,15 +72,15 @@ Storage.prototype.setItem = function(key, item, callback) {
  * @param  {Function} callback
  */
 Storage.prototype.getItem = function(key, callback) {
-    this._engine.getItem(key, callback);
-    return this;
+  this._engine.getItem(key, callback);
+  return this;
 };
 
 /**
  * @param  {Function} callback
  */
 Storage.prototype.getAllItems = function(callback) {
-    this._engine.getAllItems(callback);
+  this._engine.getAllItems(callback);
 };
 
 /**
@@ -88,7 +88,7 @@ Storage.prototype.getAllItems = function(callback) {
  * @param  {Function} callback
  */
 Storage.prototype.removeItem = function(key, callback) {
-    this._engine.removeItem(key, callback);
+  this._engine.removeItem(key, callback);
 };
 
 module.exports = global.Storage = Storage;
