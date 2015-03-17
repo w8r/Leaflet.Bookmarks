@@ -4,6 +4,7 @@
 @bookmarkHeaderBg:       #ffffff;
 @bookmarkItemBorderTop:  #ffffff;
 @bookmarkItemHoverBg:    #eeeeee;
+@bookmarkFormBorders:    #cccccc;
 @bookmarkEmptyColor:     #777777;
 
 .leaflet-right .leaflet-bookmarks-control {
@@ -250,6 +251,11 @@
 .leaflet-bookmarks-form {
     padding-top: 10px;
 
+    .leaflet-bookmarks-form-input,
+    .leaflet-bookmarks-form-submit {
+    	display: table-cell;
+    }
+
     .leaflet-bookmarks-form-input {
 
         &, &:focus {
@@ -257,18 +263,23 @@
             outline-style: none;
         }
 
+        font-size: 13px;
         padding-left: 5px;
         padding-right: 5px;
-        line-height: 17px;
+        line-height: 19px;
+        border: 1px solid @bookmarkFormBorders;
+        border-radius: 3px 0 0 3px;
     }
 
     .leaflet-bookmarks-form-submit {
         border: 0;
-        font-size: 15px;
+        font-size: 16px;
         font-weight: bold;
         margin: 0 0 -2px -2px;
         position: relative;
         top: 1px;
+        border-radius: 0 3px 3px 0;
+        cursor: pointer;
     }
 
     .leaflet-bookmarks-form-coords {

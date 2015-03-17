@@ -783,12 +783,13 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       submitText: '+'
     },
     generateNames: true,
+    minWidth: 160,
     generateNamesPrefix: 'Bookmark ',
     template: '<form class="{{ formClass }}">' +
-      '<input type="text" name="bookmark-name" ' +
-      'placeholder="{{ inputPlaceholder }}" class="{{ inputClass }}">' +
-      '<input type="submit" value="{{ submitText }}" ' +
-      'class="{{ submitClass }}">' +
+      '<div class="input-group"><input type="text" name="bookmark-name" ' +
+      'placeholder="{{ inputPlaceholder }}" class="form-control {{ inputClass }}">' +
+      '<button type="submit" class="input-group-addon {{ submitClass }}">' +
+      '{{ submitText }}</button></div>' +
       '<div class="{{ coordsClass }}">{{ coords }}</div>' +
       '</form>'
   },
