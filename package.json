@@ -1,6 +1,6 @@
 {
   "name": "leaflet-bookmarks",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Leaflet plugin for user-generated bookmarks",
   "main": "index.js",
   "scripts": {
@@ -43,10 +43,12 @@
     "grunt-contrib-less": "^0.11.4",
     "grunt-contrib-uglify": "^0.5.1",
     "grunt-contrib-watch": "^0.6.1",
-    "leaflet": "^0.7.3",
     "less": "^2.1.1",
     "serve": "^1.4.0",
     "uglify-js": "^2.4.15",
     "watchify": "^1.0.6"
+  },
+  "dependencies": {
+    "leaflet": "^0.7.3"
   }
 }
