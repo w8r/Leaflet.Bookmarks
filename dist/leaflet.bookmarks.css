@@ -113,6 +113,7 @@
   font-size: 1.5em;
   color: #777777;
   opacity: 0;
+  z-index: 30;
   filter: alpha(opacity=0);
   transition: opacity 0.15s linear;
   -webkit-transition: opacity 0.15s linear;
@@ -125,6 +126,7 @@
 .leaflet-bookmarks-control .bookmarks-list .bookmark-name,
 .leaflet-bookmarks-control .bookmarks-list .bookmark-coords {
   display: block;
+  z-index: 20;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-name {
   font-weight: bold;
@@ -192,6 +194,20 @@
 }
 .leaflet-bookmarks-to-right.expanded .bookmarks-container {
   display: block;
+}
+.leaflet-bookmarks-form-popup .leaflet-popup-menu-button {
+  position: absolute;
+  top: 0;
+  right: 26px;
+  padding: 4px 4px 0 0;
+  text-align: center;
+  width: 18px;
+  height: 14px;
+  font: 16px/14px Tahoma, Verdana, sans-serif;
+  color: #c3c3c3;
+  text-decoration: none;
+  font-weight: bold;
+  background: transparent;
 }
 .leaflet-bookmarks-form {
   padding-top: 10px;
