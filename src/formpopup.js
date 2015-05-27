@@ -37,11 +37,14 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       removeClass: 'leaflet-bookmarks-form-remove',
       editClass: 'leaflet-bookmarks-form-edit',
       cancelClass: 'leaflet-bookmarks-form-cancel',
+      editableClass: 'editable',
+      removableClass: 'removable',
+      menuItemClass: 'nav-item',
       editMenuText: 'Edit',
       removeMenuText: 'Remove',
       cancelMenuText: 'Cancel',
       submitTextCreate: '+',
-      submitTextEdit: '&#10004;'
+      submitTextEdit: '<span class="icon-checkmark"></span>'
     },
     generateNames: true,
     minWidth: 160,
@@ -54,10 +57,10 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       '{{ submitText }}</button></div>' +
       '<div class="{{ coordsClass }}">{{ coords }}</div>' +
       '</form>',
-    menuTemplate: '<ul class="dropdown-menu" role="menu">' +
-      '<li><a href="#" class="{{ editClass }}">&#10000; {{ editMenuText }}</a></li>' +
-      '<li><a href="#" class="{{ removeClass }}">&times; {{ removeMenuText }}</a></li>' +
-      '<li><a href="#" class="{{ cancelClass }}">{{ cancelMenuText }}</a></li>' +
+    menuTemplate: '<ul class="nav {{ mode }}" role="menu">' +
+      '<li class="{{ editClass }}"><a href="#" class="{{ menuItemClass }}">{{ editMenuText }}</a></li>' +
+      '<li class="{{ removeClass }}"><a href="#" class="{{ menuItemClass }}">{{ removeMenuText }}</a></li>' +
+      '<li><a href="#" class="{{ menuItemClass }} {{ cancelClass }}">{{ cancelMenuText }}</a></li>' +
       '</ul>'
   },
 
@@ -81,7 +84,17 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
      */
     this._control = control;
 
+    /**
+     * @type {L.LatLng}
+     */
     this._latlng = source.getLatLng();
+
+    /**
+     * For dragging purposes we're not maintaining the usual
+     * link between the marker and Popup, otherwise it will simply be destroyed
+     */
+    source._popup_ = this;
+
     L.Popup.prototype.initialize.call(this, options, source);
   },
 
@@ -91,12 +104,14 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   _initLayout: function() {
     L.Popup.prototype._initLayout.call(this);
 
-    if (this.options.mode === modes.SHOW) {
+    if (this.options.mode === modes.SHOW &&
+      (this._bookmark.editable || this._bookmark.removable)) {
+
       var menuButton = this._menuButton =
         L.DomUtil.create('a', 'leaflet-popup-menu-button');
       this._container.insertBefore(menuButton, this._closeButton);
       menuButton.href = '#menu';
-      menuButton.innerHTML = '<span class="menu-icon">=</span>';
+      menuButton.innerHTML = '<span class="menu-icon"></span>';
       L.DomEvent.disableClickPropagation(menuButton);
       L.DomEvent.on(menuButton, 'click', this._onMenuButtonClick, this);
     }
@@ -154,13 +169,21 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       if (this.options.mode === modes.UPDATE) {
         submitText = this.options.templateOptions.submitTextEdit;
       }
+      var modeClass = [];
+      if (this._bookmark.editable) {
+        modeClass.push(this.options.templateOptions.editableClass);
+      }
+      if (this._bookmark.removable) {
+        modeClass.push(this.options.templateOptions.removableClass);
+      }
       content = substitute(template,
         L.Util.extend({}, this._bookmark || {}, this.options.templateOptions, {
           submitText: submitText,
           coords: this.formatCoords(
             this._source.getLatLng(),
             this._map.getZoom()
-          )
+          ),
+          mode: modeClass.join(' ')
         }));
     }
     this._content = content;
@@ -182,10 +205,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         this.options.templateOptions.inputClass);
 
       L.DomEvent.on(form, 'submit', this._onSubmit, this);
-
-      setTimeout(function() {
-        input.focus();
-      }, 250);
+      setTimeout(this._setFocus.bind(this), 250);
     } else if (this.options.mode === modes.OPTIONS) {
       L.DomEvent.delegate(this._container,
         '.' + this.options.templateOptions.editClass,
@@ -193,7 +213,23 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       L.DomEvent.delegate(this._container,
         '.' + this.options.templateOptions.removeClass,
         'click', this._onRemoveClick, this);
+      L.DomEvent.delegate(this._container,
+        '.' + this.options.templateOptions.cancelClass,
+        'click', this._onCancelClick, this);
     }
+  },
+
+  /**
+   * Set focus at the end of input
+   */
+  _setFocus: function() {
+    var input = this._contentNode.querySelector('.' +
+      this.options.templateOptions.inputClass);
+    // Multiply by 2 to ensure the cursor always ends up at the end;
+    // Opera sometimes sees a carriage return as 2 characters.
+    var strLength = input.value.length * 2;
+    input.focus();
+    input.setSelectionRange(strLength, strLength);
   },
 
   /**
@@ -221,6 +257,18 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   },
 
   /**
+   * Back from options view
+   * @param  {Event} evt
+   */
+  _onCancelClick: function(evt) {
+    L.DomEvent.preventDefault(evt);
+    this._map.fire('bookmark:show', {
+      data: this._bookmark
+    });
+    this._close();
+  },
+
+  /**
    * Creates bookmark object from form data
    * @return {Object}
    */
@@ -232,7 +280,6 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
         this.options.templateOptions.inputClass);
       var idInput = this._contentNode.querySelector('.' +
         this.options.templateOptions.idInputClass);
-
       return {
         latlng: this._source.getLatLng(),
         zoom: this._map.getZoom(),
@@ -257,7 +304,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     }
 
     if (input.value !== '') {
-      var bookmark = this._getBookmarkData();
+      var bookmark = L.Util.extend({}, this._bookmark, this._getBookmarkData());
       var map = this._map;
 
       this._close();
@@ -310,6 +357,8 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * Marker drag
    */
   _onSourceMoveStart: function() {
+    // store
+    this._bookmark = L.Util.extend(this._bookmark || {}, this._getBookmarkData());
     this._container.style.display = 'none';
   },
 
@@ -320,6 +369,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   _onSourceMoved: function(e) {
     this._latlng = this._source.getLatLng();
     this._container.style.display = '';
+    this._source.openPopup();
     this.update();
   }
 });
