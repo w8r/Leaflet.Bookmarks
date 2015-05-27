@@ -183,8 +183,7 @@
 .leaflet-bookmarks-control .add-bookmark-button:hover .plus {
   background: #0078a8;
 }
-.leaflet-bookmarks-to-left.expanded .list-with-button,
-.leaflet-bookmarks-to-right.expanded .list-with-button {
+.leaflet-bookmarks-control.expanded .list-with-button {
   padding-bottom: 30px;
 }
 .leaflet-bookmarks-to-right .bookmarks-header {
