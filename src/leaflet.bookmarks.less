@@ -1,11 +1,18 @@
 @bookmarkIconColor:      #777777;
 @bookmarkIconHoverColor: #333333;
-@bookmarkIconBg:         #ffffff;
-@bookmarkHeaderBg:       #ffffff;
-@bookmarkItemBorderTop:  #ffffff;
+@bookmarkIconOutColor:   #555555;
+@buttonColor:            #dfdfdf;
+@white:                  #ffffff;
+@bookmarkIconBg:         @white;
+@bookmarkHeaderBg:       @white;
+@bookmarkItemBorderTop:  @white;
 @bookmarkItemHoverBg:    #eeeeee;
 @bookmarkFormBorders:    #cccccc;
+@bookmarkMenuBorders:    #dddddd;
 @bookmarkEmptyColor:     #777777;
+@linkColor:              #0078A8;
+@linkHoverColor:         darken(@linkColor, 20%);
+@disabledColor:          #efefef;
 
 .leaflet-right .leaflet-bookmarks-control {
     margin-top: 18px;
@@ -138,24 +145,26 @@
 
         .bookmark-remove {
             display: inline-block;
+            position: relative;
             float: right;
             margin-left: 6px;
             font-size: 1.5em;
             color: @bookmarkIconColor;
             opacity: 0;
+            z-index: 30;
             filter: alpha(opacity=0);
             transition: opacity 0.15s linear;
             -webkit-transition: opacity 0.15s linear;
 
             &:hover {
-                color: @bookmarkIconHoverColor;
+                color: @linkColor;
                 opacity: 1;
                 filter: alpha(opacity=100);
             }
         }
 
         .bookmark-name,
-        .bookmark-coords { display: block; }
+        .bookmark-coords { display: block; z-index: 20; }
 
         .bookmark-name {
             font-weight: bold;
@@ -183,6 +192,47 @@
 
         .bookmarks-list {
             display: block;
+        }
+
+        .add-bookmark-button {
+            display: inline-block;
+            width: 100%;
+            line-height: 2;
+            cursor: pointer;
+            padding-left: 5px;
+
+            .content {
+                margin-right: 15px;
+                padding-left: 5px;
+            }
+        }
+    }
+
+    .add-bookmark-button {
+        display: none;
+        position: absolute;
+        font-weight: bold;
+        bottom: 5px;
+
+        .plus {
+            background: @linkHoverColor;
+            display: inline-block;
+            width: 11px;
+            height: 15px;
+            border-radius: 50%;
+            color: @white;
+            padding: 0 0 0 4px;
+            line-height: 14px;
+        }
+
+        &:hover {
+            .content {
+                text-decoration: underline;
+            }
+
+            .plus {
+                background: @linkColor;
+            }
         }
     }
 }
@@ -245,7 +295,114 @@
         .bookmarks-container {
             display: block;
         }
+
+        .list-with-button {
+        	padding-bottom: 30px;
+        }
     }
+}
+
+.leaflet-bookmarks-form-popup {
+
+	.leaflet-popup-menu-button {
+		position: absolute;
+  	top: 7px;
+  	right: 26px;
+  	background: transparent;
+  	border-bottom: 6px double @bookmarkFormBorders;
+  	border-top: 2px solid @bookmarkFormBorders;
+  	content: "";
+  	height: 2px;
+  	width: 12px;
+
+  	&:hover {
+  		border-bottom-color: @linkColor;
+  		border-top-color: @linkColor;
+  	}
+	}
+
+	.nav {
+		list-style: none;
+		padding: 4px 0;
+
+		.nav-item {
+			display: block;
+			white-space: nowrap;
+			padding-right: 14px;
+			padding-left: 14px;
+			line-height: 2em;
+			text-decoration: none;
+			border-bottom: 1px solid @bookmarkMenuBorders;
+			color: @linkColor;
+
+			&:hover {
+				background: @buttonColor;
+				color: @linkHoverColor;
+				box-shadow: 1px 1px 1px @white;
+			}
+		}
+
+		li:first-child .nav-item {
+			border-top-left-radius: 4px;
+			border-top-right-radius: 4px;
+		}
+
+		li:last-child .nav-item {
+			border-bottom-left-radius: 4px;
+			border-bottom-right-radius: 4px;
+			border-bottom: 0;
+		}
+
+		.leaflet-bookmarks-form-remove,
+		.leaflet-bookmarks-form-edit {
+			display: none;
+		}
+
+		&.removable .leaflet-bookmarks-form-remove {
+			display: block;
+		}
+
+    &.editable .leaflet-bookmarks-form-edit {
+			display: block;
+    }
+	}
+
+	.icon-checkmark {
+		display:inline-block;
+		width: 16px;
+		height: 16px;
+		border-radius:50%;
+		margin-top: -3px;
+    -webkit-transform: rotate(45deg); /* Chrome, Safari, Opera */
+        -ms-transform: rotate(45deg); /* IE 9 */
+		        transform: rotate(45deg);
+
+		&:before{
+			content:"";
+			position: absolute;
+			width: 3px;
+			height: 9px;
+			background-color: @bookmarkIconOutColor;
+			left: 8px;
+			top: 4px;
+		}
+
+		&:after{
+    	content:"";
+			position: absolute;
+			width:3px;
+			height:3px;
+			background-color: @bookmarkIconOutColor;
+			left: 5px;
+			top: 10px;
+		}
+	}
+
+	button:hover .icon-checkmark {
+		&:before, &:after {
+			background-color: @bookmarkIconHoverColor;
+		}
+	}
 }
 
 .leaflet-bookmarks-form {
@@ -280,6 +437,15 @@
         top: 1px;
         border-radius: 0 3px 3px 0;
         cursor: pointer;
+        height: 1.45em;
+
+        &.disabled {
+        	background-color: @disabledColor;
+
+        	.icon-checkmark {
+        		opacity: 0.5;
+        	}
+        }
     }
 
     .leaflet-bookmarks-form-coords {

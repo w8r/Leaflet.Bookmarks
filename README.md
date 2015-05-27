@@ -43,10 +43,12 @@ If you want you can omit the naming step and add a bookmark straight to the list
 
 ```js
 map.fire('bookmark:add', {
+  data: {
     id: 'XXXX' // make sure it's unique,
     name: 'Bookmark name',
     latlng: [lat, lng] // important, we're dealing with JSON here,
     your_key: 'your value'
+  }
 });
 ```
 
@@ -216,6 +218,10 @@ formPopup: {
                 latlng: this._source.getLatLng() // get it from the marker
             };
         },
+        onRemove: function(bookmark, callback){
+          /* use that to add confirmation menus
+             when removing a bookmark */
+           },
         generateNames: true, // generate unique name if it's not provided by the user
         generateNamesPrefix: 'Bookmark ',
         template: '<form class="{{ formClass }}">' +
@@ -224,8 +230,46 @@ formPopup: {
             '<input type="submit" value="{{ submitText }}" ' +
             'class="{{ submitClass }}">' +
             '<div class="{{ coordsClass }}">{{ coords }}</div>' +
-            '</form>'
+            '</form>',
     }
+```
+
+### Editing
+
+You can enable bookmarks editing/removal by putting a flag in the bookmark object
+
+```js
+{
+  name: '',
+  id: 'XXX',
+  latlng: [lat, lng],
+  editable: true,
+  removable: true
+}
+```
+
+This will enable a menu on popup to remove or edit the bookmark.
+Presence of menu items will is defined by those params also
+
+![screenshot 2015-05-27 21 32 51](https://cloud.githubusercontent.com/assets/26884/7845663/987abcfa-04b8-11e5-867d-f4ea025b416e.png)
+
+### Removal
+
+You can pass a custom confirm function to the control, so you could handle confirmation menus
+
+```
+  onRemove: function(bookmark, callback){
+    if(confirm('Are you really sure?')){
+      if(bookmark.name === 'Bamby') {
+        alert('Keep your hands away!');
+        callback(false); // won't be removed
+      } else {
+        callback(true);  // will be removed
+      }
+    } else {
+      callback(false);
+    }
+  }
 ```
 
 ### `L.Util._template`
@@ -245,6 +289,12 @@ Alexander Milevski
 MIT
 
 ## Changelog
+* **0.2.0**
+  * Editing/removal funtionality
+  * "Add new" button
+  * Tests added
+* **0.1.5**
+  * GeoJSON support
 * **0.1.3**
   * Different layout when in `topleft` position
   * Scroll to bookmark on addition

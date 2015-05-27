@@ -38,7 +38,6 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     name: 'leaflet-bookmarks',
     position: 'topright', // chose your own if you want
 
-
     containerClass: 'leaflet-bar leaflet-bookmarks-control',
     expandedClass: 'expanded',
     headerClass: 'bookmarks-header',
@@ -46,7 +45,9 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     iconClass: 'bookmarks-icon',
     iconWrapperClass: 'bookmarks-icon-wrapper',
     listWrapperClass: 'bookmarks-list-wrapper',
+    listWrapperClassAdd: 'list-with-button',
     wrapperClass: 'bookmarks-container',
+    addBookmarkButtonCss: 'add-bookmark-button',
 
     animateClass: 'bookmark-added-anim',
     animateDuration: 150,
@@ -74,12 +75,19 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
       emptyClass: 'bookmarks-empty'
     },
 
+    defaultBookmarkOptions: {
+      editable: true,
+      removable: true
+    },
+
     title: 'Bookmarks',
     emptyMessage: 'No bookmarks yet',
+    addBookmarkMessage: 'Add new bookmark',
     collapseOnClick: true,
     scrollOnAdd: true,
     scrollDuration: 1000,
     popupOnShow: true,
+    addNewOption: true,
 
     /**
      * This you can change easily to output
@@ -183,9 +191,14 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
       .on(container, 'click', this._onClick, this)
       .on(container, 'contextmenu', L.DomEvent.stopPropagation);
 
-    map.on('bookmark:new', this._onBookmarkAddStart, this)
+    map
+      .on('bookmark:new', this._onBookmarkAddStart, this)
       .on('bookmark:add', this._onBookmarkAdd, this)
+      .on('bookmark:edited', this._onBookmarkEdited, this)
       .on('bookmark:show', this._onBookmarkShow, this)
+      .on('bookmark:edit', this._onBookmarkEdit, this)
+      .on('bookmark:options', this._onBookmarkOptions, this)
+      .on('bookmark:remove', this._onBookmarkRemove, this)
       .on('resize', this._initLayout, this);
 
     return container;
@@ -195,10 +208,25 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    * @param  {L.Map} map
    */
   onRemove: function(map) {
-    map.off('bookmark:new', this._onBookmark, this)
+    map
+      .off('bookmark:new', this._onBookmarkAddStart, this)
       .off('bookmark:add', this._onBookmarkAdd, this)
+      .off('bookmark:edited', this._onBookmarkEdited, this)
       .off('bookmark:show', this._onBookmarkShow, this)
+      .off('bookmark:edit', this._onBookmarkEdit, this)
+      .off('bookmark:options', this._onBookmarkOptions, this)
+      .off('bookmark:remove', this._onBookmarkRemove, this)
       .off('resize', this._initLayout, this);
+
+    if (this._marker) {
+      this._marker._popup_._close();
+    }
+
+    if (this.options.addNewOption) {
+      L.DomEvent.off(this._container.querySelector('.' +
+          this.options.addBookmarkButtonCss), 'click',
+        this._onAddButtonPressed, this);
+    }
 
     this._marker = null;
     this._popup = null;
@@ -267,6 +295,29 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     if (this.options.position === 'topleft') {
       L.DomUtil.addClass(this._container, 'leaflet-bookmarks-to-right');
     }
+    if (this.options.addNewOption) {
+      var addButton = L.DomUtil.create('div',
+        this.options.addBookmarkButtonCss,
+        this._listwrapper.parentNode);
+
+      this._listwrapper.parentNode
+        .classList.add(this.options.listWrapperClassAdd);
+      addButton.innerHTML = '<span class="plus">+</span>' +
+        '<span class="content">' +
+        this.options.addBookmarkMessage + '</span>';
+      L.DomEvent.on(addButton, 'click', this._onAddButtonPressed, this);
+    }
+  },
+
+  /**
+   * @param  {MouseEvent} evt
+   */
+  _onAddButtonPressed: function(evt) {
+    L.DomEvent.stop(evt);
+    this.collapse();
+    this._map.fire('bookmark:new', {
+      latlng: this._map.getCenter()
+    });
   },
 
   /**
@@ -303,9 +354,9 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    * @param  {Array.<Object>} bookmarks
    */
   _appendItems: function(bookmarks) {
-    var html = '',
-      wasEmpty = this._data.length === 0,
-      bookmark;
+    var html = '';
+    var wasEmpty = this._data.length === 0;
+    var bookmark;
 
     // maybe you have something in mind?
     bookmarks = this._filterBookmarks(bookmarks);
@@ -442,10 +493,13 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    */
   _onClick: function(evt) {
     var expanded = L.DomUtil.hasClass(
-        this._container, this.options.expandedClass),
-      target = evt.target || evt.srcElement;
+      this._container, this.options.expandedClass);
+    var target = evt.target || evt.srcElement;
 
     if (expanded) {
+      if (target === this._container) {
+        return this.collapse();
+      }
       // check if it's inside the header
       while (target !== this._container) {
         if (L.DomUtil.hasClass(target, this.options.headerClass) ||
@@ -477,8 +531,12 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
 
     // open form
     this._popup = new L.Control.Bookmarks.FormPopup(
-      this.options.formPopup,
-      this._marker
+      L.Util.extend(this.options.formPopup, {
+        mode: L.Control.Bookmarks.FormPopup.modes.CREATE
+      }),
+      this._marker,
+      this,
+      L.Util.extend({}, evt.data, this.options.defaultBookmarkOptions)
     ).addTo(this._map);
   },
 
@@ -488,9 +546,37 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    */
   _onBookmarkAdd: function(bookmark) {
     var self = this;
+    var map = this._map;
     bookmark = this._cleanBookmark(bookmark.data);
     this._storage.setItem(bookmark.id, bookmark, function(item) {
+      map.fire('bookmark:saved', {
+        data: item
+      });
       self._appendItems([item]);
+    });
+    this._showBookmark(bookmark);
+  },
+
+  /**
+   * Update done
+   * @param  {Event} evt
+   */
+  _onBookmarkEdited: function(evt) {
+    var self = this;
+    var map = this._map;
+    var bookmark = this._cleanBookmark(evt.data);
+    this._storage.setItem(bookmark.id, bookmark, function(item) {
+      map.fire('bookmark:saved', {
+        data: item
+      });
+      var data = self._data;
+      self._data = [];
+      for (var i = 0, len = data.length; i < len; i++) {
+        if (data[i].id === bookmark.id) {
+          data.splice(i, 1, bookmark);
+        }
+      }
+      self._appendItems(data);
     });
     this._showBookmark(bookmark);
   },
@@ -539,27 +625,98 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
   },
 
   /**
-   * Shows bookmark, nothing else
+   * Event handler for edit
+   * @param  {Object} evt
+   */
+  _onBookmarkEdit: function(evt) {
+    this._editBookmark(evt.data);
+  },
+
+  /**
+   * Remove bookmark triggered
+   * @param  {Event} evt
+   */
+  _onBookmarkRemove: function(evt) {
+    this._removeBookmark(evt.data);
+  },
+
+  /**
+   * Bookmark options called
+   * @param  {Event} evt
+   */
+  _onBookmarkOptions: function(evt) {
+    this._bookmarkOptions(evt.data);
+  },
+
+  /**
+   * Show menu popup
    * @param  {Object} bookmark
    */
-  _showBookmark: function(bookmark) {
-    var coords = L.latLng(bookmark.latlng),
-      marker = new L.Marker(coords, {
-        icon: this.options.icon || new L.Icon.Default(),
-        riseOnHover: true
-      }).addTo(this._map);
+  _bookmarkOptions: function(bookmark) {
+    var coords = L.latLng(bookmark.latlng);
+    var marker = this._marker = this._createMarker(coords, bookmark);
+    // open form
+    this._popup = new L.Control.Bookmarks.FormPopup(
+      L.Util.extend(this.options.formPopup, {
+        mode: L.Control.Bookmarks.FormPopup.modes.OPTIONS
+      }),
+      this._marker,
+      this,
+      bookmark
+    ).addTo(this._map);
+  },
 
-    function removeIfRemoved(evt) {
+  /**
+   * Call edit popup
+   * @param  {Object} bookmark
+   */
+  _editBookmark: function(bookmark) {
+    var coords = L.latLng(bookmark.latlng);
+    var marker = this._marker = this._createMarker(coords, bookmark);
+    marker.dragging.enable();
+    // open form
+    this._popup = new L.Control.Bookmarks.FormPopup(
+      L.Util.extend(this.options.formPopup, {
+        mode: L.Control.Bookmarks.FormPopup.modes.UPDATE
+      }),
+      this._marker,
+      this,
+      bookmark
+    ).addTo(this._map);
+  },
+
+  /**
+   * Returns a handler that will remove the bookmark from map
+   * in case it got removed from the list
+   * @param  {Object}   bookmark
+   * @param  {L.Marker} marker
+   * @return {Function}
+   */
+  _getOnRemoveHandler: function(bookmark, marker) {
+    return function(evt) {
       if (evt.data.id === bookmark.id) {
         marker.clearAllEventListeners();
-        marker.closePopup();
+        if (marker._popup_) {
+          marker._popup_._close();
+        }
         this.removeLayer(marker);
       }
-    }
+    };
+  },
 
-    marker.bindPopup(this._getPopupContent(bookmark));
+  /**
+   * Creates bookmark marker
+   * @param  {L.LatLng} coords
+   * @param  {Object}   bookmark
+   * @return {L.Marker}
+   */
+  _createMarker: function(coords, bookmark) {
+    var marker = new L.Marker(coords, {
+      icon: this.options.icon || new L.Icon.Default(),
+      riseOnHover: true
+    }).addTo(this._map);
+    var removeIfRemoved = this._getOnRemoveHandler(bookmark, marker);
     this._map.on('bookmark:removed', removeIfRemoved);
-
     marker
       .on('popupclose', function() {
         this._map.removeLayer(this);
@@ -567,10 +724,32 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
       .on('remove', function() {
         this._map.off('bookmark:removed', removeIfRemoved);
       });
+    return marker;
+  },
 
-    if (this.options.popupOnShow) {
-      marker.openPopup();
+  /**
+   * Shows bookmark, nothing else
+   * @param  {Object} bookmark
+   */
+  _showBookmark: function(bookmark) {
+    if (this._marker) {
+      this._marker._popup_._close();
     }
+    var coords = L.latLng(bookmark.latlng);
+    var marker = this._createMarker(coords, bookmark);
+    var popup = new L.Control.Bookmarks.FormPopup(
+      L.Util.extend(this.options.formPopup, {
+        mode: L.Control.Bookmarks.FormPopup.modes.SHOW
+      }),
+      marker,
+      this,
+      bookmark
+    );
+    if (this.options.popupOnShow) {
+      popup.addTo(this._map);
+    }
+    this._popup = popup;
+    this._marker = marker;
   },
 
   /**
@@ -585,11 +764,23 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    * @param  {Object} bookmark
    */
   _removeBookmark: function(bookmark) {
-    var self = this;
-    this._data.splice(this._data.indexOf(bookmark), 1);
-    this._storage.removeItem(bookmark.id, function(bookmark) {
-      self._onBookmarkRemoved(bookmark);
-    });
+    var remove = function(proceed) {
+      if (!proceed) {
+        return this._showBookmark(bookmark);
+      }
+
+      var self = this;
+      this._data.splice(this._data.indexOf(bookmark), 1);
+      this._storage.removeItem(bookmark.id, function(bookmark) {
+        self._onBookmarkRemoved(bookmark);
+      });
+    }.bind(this);
+
+    if (typeof this.options.onRemove === 'function') {
+      this.options.onRemove(bookmark, remove);
+    } else {
+      remove(true);
+    }
   },
 
   /**
@@ -608,7 +799,9 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     if (li) {
       L.DomUtil.setOpacity(li, 0);
       global.setTimeout(function() {
-        li.parentNode.removeChild(li);
+        if (li.parentNode) {
+          li.parentNode.removeChild(li);
+        }
         if (self._data.length === 0) {
           self._setEmptyListContent();
         }
@@ -710,7 +903,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     for (var i = 0, len = geojson.features.length; i < len; i++) {
       var bookmark = geojson.features[i];
       if (!bookmark.properties.divider) {
-        bookmark.properties.latlng = bookmark.geometry.coordinates.concat().reverse();
+        bookmark.properties.latlng = bookmark.geometry
+          .coordinates.concat().reverse();
       }
       bookmarks.push(bookmark.properties);
     }

@@ -2,6 +2,13 @@ var L = global.L || require('leaflet');
 var substitute = require('./string').substitute;
 var unique = require('./string').unique;
 
+var modes = {
+  CREATE: 1,
+  UPDATE: 2,
+  SHOW: 3,
+  OPTIONS: 4
+};
+
 /**
  * New bookmark form popup
  *
@@ -10,42 +17,122 @@ var unique = require('./string').unique;
  */
 var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 
+  statics: {
+    modes: modes
+  },
+
   /**
    * @type {Object}
    */
   options: {
+    mode: modes.CREATE,
     className: 'leaflet-bookmarks-form-popup',
     templateOptions: {
       formClass: 'leaflet-bookmarks-form',
       inputClass: 'leaflet-bookmarks-form-input',
+      idInputClass: 'leaflet-bookmarks-form-id',
       coordsClass: 'leaflet-bookmarks-form-coords',
       submitClass: 'leaflet-bookmarks-form-submit',
       inputPlaceholder: 'Bookmark name',
-      submitText: '+'
+      removeClass: 'leaflet-bookmarks-form-remove',
+      editClass: 'leaflet-bookmarks-form-edit',
+      cancelClass: 'leaflet-bookmarks-form-cancel',
+      editableClass: 'editable',
+      removableClass: 'removable',
+      menuItemClass: 'nav-item',
+      editMenuText: 'Edit',
+      removeMenuText: 'Remove',
+      cancelMenuText: 'Cancel',
+      submitTextCreate: '+',
+      submitTextEdit: '<span class="icon-checkmark"></span>'
     },
     generateNames: true,
     minWidth: 160,
     generateNamesPrefix: 'Bookmark ',
     template: '<form class="{{ formClass }}">' +
       '<div class="input-group"><input type="text" name="bookmark-name" ' +
-      'placeholder="{{ inputPlaceholder }}" class="form-control {{ inputClass }}">' +
+      'placeholder="{{ inputPlaceholder }}" class="form-control {{ inputClass }}" value="{{ name }}">' +
+      '<input type="hidden" class={{ idInputClass }} value="{{ id }}">' +
       '<button type="submit" class="input-group-addon {{ submitClass }}">' +
       '{{ submitText }}</button></div>' +
       '<div class="{{ coordsClass }}">{{ coords }}</div>' +
-      '</form>'
+      '</form>',
+    menuTemplate: '<ul class="nav {{ mode }}" role="menu">' +
+      '<li class="{{ editClass }}"><a href="#" class="{{ menuItemClass }}">{{ editMenuText }}</a></li>' +
+      '<li class="{{ removeClass }}"><a href="#" class="{{ menuItemClass }}">{{ removeMenuText }}</a></li>' +
+      '<li><a href="#" class="{{ menuItemClass }} {{ cancelClass }}">{{ cancelMenuText }}</a></li>' +
+      '</ul>'
   },
 
   /**
-   * @param  {Object} options
+   * @param  {Object}  options
    * @param  {L.Layer} source
+   * @param  {Object=} bookmark
    *
    * @constructor
    */
-  initialize: function(options, source) {
+  initialize: function(options, source, control, bookmark) {
     options.offset = this._calculateOffset(source, {});
 
+    /**
+     * @type {Object}
+     */
+    this._bookmark = bookmark;
+
+    /**
+     * @type {L.Control.Bookmarks}
+     */
+    this._control = control;
+
+    /**
+     * @type {L.LatLng}
+     */
     this._latlng = source.getLatLng();
+
+    /**
+     * For dragging purposes we're not maintaining the usual
+     * link between the marker and Popup, otherwise it will simply be destroyed
+     */
+    source._popup_ = this;
+
     L.Popup.prototype.initialize.call(this, options, source);
+  },
+
+  /**
+   * Add menu button
+   */
+  _initLayout: function() {
+    L.Popup.prototype._initLayout.call(this);
+
+    if (this.options.mode === modes.SHOW &&
+      (this._bookmark.editable || this._bookmark.removable)) {
+
+      var menuButton = this._menuButton =
+        L.DomUtil.create('a', 'leaflet-popup-menu-button');
+      this._container.insertBefore(menuButton, this._closeButton);
+      menuButton.href = '#menu';
+      menuButton.innerHTML = '<span class="menu-icon"></span>';
+      L.DomEvent.disableClickPropagation(menuButton);
+      L.DomEvent.on(menuButton, 'click', this._onMenuButtonClick, this);
+    }
+  },
+
+  /**
+   * Show options menu
+   */
+  _showMenu: function() {
+    this._map.fire('bookmark:options', {
+      data: this._bookmark
+    });
+  },
+
+  /**
+   * @param  {MouseEvent} evt
+   */
+  _onMenuButtonClick: function(evt) {
+    L.DomEvent.preventDefault(evt);
+    this._showMenu();
+    this._close();
   },
 
   /**
@@ -70,25 +157,115 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * @override
    */
   _updateContent: function() {
-    this._content = substitute(this.options.template,
-      L.Util.extend({}, this.options.templateOptions, {
-        coords: this.formatCoords(
-          this._source.getLatLng(),
-          this._map.getZoom()
-        )
-      }));
+    var content;
+    if (this.options.mode === modes.SHOW) {
+      content = this._control._getPopupContent(this._bookmark);
+    } else {
+      var template = this.options.template;
+      var submitText = this.options.templateOptions.submitTextCreate;
+      if (this.options.mode === modes.OPTIONS) {
+        template = this.options.menuTemplate;
+      }
+      if (this.options.mode === modes.UPDATE) {
+        submitText = this.options.templateOptions.submitTextEdit;
+      }
+      var modeClass = [];
+      if (this._bookmark.editable) {
+        modeClass.push(this.options.templateOptions.editableClass);
+      }
+      if (this._bookmark.removable) {
+        modeClass.push(this.options.templateOptions.removableClass);
+      }
+      content = substitute(template,
+        L.Util.extend({}, this._bookmark || {}, this.options.templateOptions, {
+          submitText: submitText,
+          coords: this.formatCoords(
+            this._source.getLatLng(),
+            this._map.getZoom()
+          ),
+          mode: modeClass.join(' ')
+        }));
+    }
+    this._content = content;
     L.Popup.prototype._updateContent.call(this);
+    this._onRendered();
+  },
 
-    var form = this._contentNode.querySelector('.' +
-        this.options.templateOptions.formClass),
-      input = form.querySelector('.' +
+  /**
+   * Form rendered, set up create or edit
+   */
+  _onRendered: function() {
+    if (
+      this.options.mode === modes.CREATE ||
+      this.options.mode === modes.UPDATE
+    ) {
+      var form = this._contentNode.querySelector('.' +
+        this.options.templateOptions.formClass);
+      var input = form.querySelector('.' +
         this.options.templateOptions.inputClass);
 
-    L.DomEvent.on(form, 'submit', this._onSubmit, this);
+      L.DomEvent.on(form, 'submit', this._onSubmit, this);
+      setTimeout(this._setFocus.bind(this), 250);
+    } else if (this.options.mode === modes.OPTIONS) {
+      L.DomEvent.delegate(this._container,
+        '.' + this.options.templateOptions.editClass,
+        'click', this._onEditClick, this);
+      L.DomEvent.delegate(this._container,
+        '.' + this.options.templateOptions.removeClass,
+        'click', this._onRemoveClick, this);
+      L.DomEvent.delegate(this._container,
+        '.' + this.options.templateOptions.cancelClass,
+        'click', this._onCancelClick, this);
+    }
+  },
 
-    setTimeout(function() {
-      input.focus();
-    }, 250);
+  /**
+   * Set focus at the end of input
+   */
+  _setFocus: function() {
+    var input = this._contentNode.querySelector('.' +
+      this.options.templateOptions.inputClass);
+    // Multiply by 2 to ensure the cursor always ends up at the end;
+    // Opera sometimes sees a carriage return as 2 characters.
+    var strLength = input.value.length * 2;
+    input.focus();
+    input.setSelectionRange(strLength, strLength);
+  },
+
+  /**
+   * Edit button clicked
+   * @param  {Event} evt
+   */
+  _onEditClick: function(evt) {
+    L.DomEvent.preventDefault(evt);
+    this._map.fire('bookmark:edit', {
+      data: this._bookmark
+    });
+    this._close();
+  },
+
+  /**
+   * Remove button clicked
+   * @param  {Event} evt
+   */
+  _onRemoveClick: function(evt) {
+    L.DomEvent.preventDefault(evt);
+    this._map.fire('bookmark:remove', {
+      data: this._bookmark
+    });
+    this._close();
+  },
+
+  /**
+   * Back from options view
+   * @param  {Event} evt
+   */
+  _onCancelClick: function(evt) {
+    L.DomEvent.preventDefault(evt);
+    this._map.fire('bookmark:show', {
+      data: this._bookmark
+    });
+    this._close();
   },
 
   /**
@@ -101,12 +278,13 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     } else {
       var input = this._contentNode.querySelector('.' +
         this.options.templateOptions.inputClass);
-
+      var idInput = this._contentNode.querySelector('.' +
+        this.options.templateOptions.idInputClass);
       return {
         latlng: this._source.getLatLng(),
         zoom: this._map.getZoom(),
         name: input.value,
-        id: unique()
+        id: idInput.value || unique()
       };
     }
   },
@@ -126,13 +304,19 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     }
 
     if (input.value !== '') {
-      var bookmark = this._getBookmarkData(),
-        map = this._map;
+      var bookmark = L.Util.extend({}, this._bookmark, this._getBookmarkData());
+      var map = this._map;
 
       this._close();
-      map.fire('bookmark:add', {
-        data: bookmark
-      });
+      if (this.options.mode === modes.CREATE) {
+        map.fire('bookmark:add', {
+          data: bookmark
+        });
+      } else {
+        map.fire('bookmark:edited', {
+          data: bookmark
+        });
+      }
     }
   },
 
@@ -173,6 +357,8 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * Marker drag
    */
   _onSourceMoveStart: function() {
+    // store
+    this._bookmark = L.Util.extend(this._bookmark || {}, this._getBookmarkData());
     this._container.style.display = 'none';
   },
 
@@ -183,6 +369,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   _onSourceMoved: function(e) {
     this._latlng = this._source.getLatLng();
     this._container.style.display = '';
+    this._source.openPopup();
     this.update();
   }
 });
