@@ -237,8 +237,13 @@
     }
 }
 
-.leaflet-bookmarks-to-left {
-    &.expanded {}
+.leaflet-bookmarks-to-left,
+.leaflet-bookmarks-to-right {
+    &.expanded {
+    	.list-with-button {
+      	padding-bottom: 30px;
+      }
+    }
 }
 
 .leaflet-bookmarks-to-right {
@@ -294,10 +299,6 @@
 
         .bookmarks-container {
             display: block;
-        }
-
-        .list-with-button {
-        	padding-bottom: 30px;
         }
     }
 }
