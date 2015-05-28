@@ -983,6 +983,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     templateOptions: {
       formClass: 'leaflet-bookmarks-form',
       inputClass: 'leaflet-bookmarks-form-input',
+      inputErrorClass: 'has-error',
       idInputClass: 'leaflet-bookmarks-form-id',
       coordsClass: 'leaflet-bookmarks-form-coords',
       submitClass: 'leaflet-bookmarks-form-submit',
@@ -999,7 +1000,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       submitTextCreate: '+',
       submitTextEdit: '<span class="icon-checkmark"></span>'
     },
-    generateNames: true,
+    generateNames: false,
     minWidth: 160,
     generateNamesPrefix: 'Bookmark ',
     template: '<form class="{{ formClass }}">' +
@@ -1251,12 +1252,17 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 
     var input = this._contentNode.querySelector('.' +
       this.options.templateOptions.inputClass);
+    input.classList.remove(this.options.templateOptions.inputErrorClass);
 
     if (input.value === '' && this.options.generateNames) {
       input.value = unique(this.options.generateNamesPrefix);
     }
 
-    if (input.value !== '') {
+    var validate = this.options.validateInput || function() {
+      return true;
+    };
+
+    if (input.value !== '' && validate.call(this, input.value)) {
       var bookmark = L.Util.extend({}, this._bookmark, this._getBookmarkData());
       var map = this._map;
 
@@ -1270,6 +1276,8 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
           data: bookmark
         });
       }
+    } else {
+      input.classList.add(this.options.templateOptions.inputErrorClass);
     }
   },
 

@@ -13,6 +13,7 @@
 @linkColor:              #0078A8;
 @linkHoverColor:         darken(@linkColor, 20%);
 @disabledColor:          #efefef;
+@errorColor:             #a94442;
 
 .leaflet-right .leaflet-bookmarks-control {
     margin-top: 18px;
@@ -426,6 +427,10 @@
         line-height: 19px;
         border: 1px solid @bookmarkFormBorders;
         border-radius: 3px 0 0 3px;
+    }
+
+    .has-error {
+    	border-color: @errorColor;
     }
 
     .leaflet-bookmarks-form-submit {

@@ -339,6 +339,9 @@
   outline-color: transparent;
   outline-style: none;
 }
+.leaflet-bookmarks-form .has-error {
+  border-color: #a94442;
+}
 .leaflet-bookmarks-form .leaflet-bookmarks-form-submit {
   border: 0;
   font-size: 16px;
