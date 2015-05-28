@@ -149,6 +149,8 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
      */
     this._isCollapsed = true;
 
+    L.Util.setOptions(this, options);
+
     /**
      * @type {Storage}
      */
@@ -157,7 +159,6 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
         new Storage(this.options.name, Storage.engineType.LOCALSTORAGE) :
         new Storage(this.options.name, Storage.engineType.GLOBALSTORAGE));
 
-    L.Util.setOptions(this, options);
     L.Control.prototype.initialize.call(this, this.options);
   },
 

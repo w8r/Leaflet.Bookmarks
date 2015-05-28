@@ -29,7 +29,7 @@ var Storage = function(name, engineType) {
  */
 Storage.engineType = {
   // XHR: 1, // we don't have it included
-  GLOBAL: 2,
+  GLOBALSTORAGE: 2,
   LOCALSTORAGE: 3
 };
 
@@ -50,7 +50,7 @@ Storage.Engine = {
  * @return {Storage.Engine}
  */
 Storage.createEngine = function(type, prefix, args) {
-  if (type === Storage.engineType.GLOBAL) {
+  if (type === Storage.engineType.GLOBALSTORAGE) {
     return new Storage.Engine.Global(prefix);
   } else if (type === Storage.engineType.LOCALSTORAGE) {
     return new Storage.Engine.LocalStorage(prefix);
