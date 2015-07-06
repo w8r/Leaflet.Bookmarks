@@ -441,12 +441,16 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
    * @return {Object}
    */
   _getBookmarkDataForTemplate: function(bookmark) {
-    return {
-      coords: this.formatCoords(bookmark.latlng),
-      name: this.formatName(bookmark.name),
-      zoom: bookmark.zoom,
-      id: bookmark.id
-    };
+      if (this.options.getBookmarkDataForTemplate) {
+        return this.options.getBookmarkDataForTemplate.call(this, bookmark);
+      } else { 
+      return {
+        coords: this.formatCoords(bookmark.latlng),
+        name: this.formatName(bookmark.name),
+        zoom: bookmark.zoom,
+        id: bookmark.id
+        };
+      }
   },
 
   /**
