@@ -1,7 +1,7 @@
 Leaflet.Bookmarks
 =================
 [![npm version](https://badge.fury.io/js/leaflet-bookmarks.svg)](http://badge.fury.io/js/leaflet-bookmarks)
-[![Bower version](https://badge.fury.io/bo/leaflet-bookmarks.svg)](http://badge.fury.io/bo/leaflet-bookmarks)
+[![Bower version](https://badge.fury.io/bo/leaflet-bookmarks.svg)](http://badge.fury.io/bo/leaflet-bookmarks) [![CircleCI](https://circleci.com/gh/w8r/Leaflet.Bookmarks.svg?style=svg)](https://circleci.com/gh/w8r/Leaflet.Bookmarks)
 
 Highly customizable Leaflet plugin for user-generated bookmarks, stored locally or on the server.
 
