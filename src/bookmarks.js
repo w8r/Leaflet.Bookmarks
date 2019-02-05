@@ -461,7 +461,13 @@ var Bookmarks = L.Control.extend( /**  @lends Bookmarks.prototype */ {
     if (this.options.formatCoords) {
       return this.options.formatCoords.call(this, latlng);
     } else {
-      return latlng[0].toFixed(4) + ',&nbsp;' + latlng[1].toFixed(4);
+      if (latlng[0] !== undefined && latlng[1] !== undefined) {
+        return latlng[0].toFixed(4) + ',&nbsp;' + latlng[1].toFixed(4);
+      } else if (latlng.lat !== undefined && latlng.lng !== undefined) {
+        return latlng.lat.toFixed(4) + ',&nbsp;' + latlng.lng.toFixed(4);
+      } else {
+        return '';
+      }
     }
   },
 
