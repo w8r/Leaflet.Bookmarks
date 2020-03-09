@@ -2,7 +2,7 @@
   "name": "leaflet-bookmarks",
   "version": "0.3.0",
   "description": "Leaflet plugin for user-generated bookmarks",
-  "main": "index.js",
+  "main": "dist/Leaflet.Bookmarks.min.js",
   "scripts": {
     "test": "mocha-puppeteer test/*.test.js",
     "start": "npm run watch & serve -p 3001",
