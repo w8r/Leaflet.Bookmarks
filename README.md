@@ -289,6 +289,12 @@ Alexander Milevski
 MIT
 
 ## Changelog
+
+* **0.4.0**
+  * Leaflet 1.6 support
+* **0.3.0**
+  * Fixed some bugs
+  * Migrated to rollup build system and ESM modules
 * **0.2.0**
   * Editing/removal funtionality
   * "Add new" button
