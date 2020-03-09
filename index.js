@@ -1,9 +1,6 @@
-/**
- * Leaflet bookmarks plugin
- * @license MIT
- * @author Alexander Milevski <info@w8r.name>
- * @preserve
- */
-var L = global.L || require('leaflet');
+import L from 'leaflet';
+import Bookmarks from './src/bookmarks';
 
-L.Control.Bookmarks = module.exports = require('./src/bookmarks');
+L.Control.Bookmarks = Bookmarks;
+
+export default Bookmarks;

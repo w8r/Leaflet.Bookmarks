@@ -3,12 +3,14 @@
 .project
 *.properties
 .idea/*
+.cache
 .settings/*
-buildlogs/*
-node_modules/*
+buildlogs
+node_modules
 bower_components/*
 docs/*
 
 build.properties
+.mocha-puppeteer
 
 test/lib/
