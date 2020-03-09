@@ -1,8 +1,8 @@
 {
   "name": "leaflet-bookmarks",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Leaflet plugin for user-generated bookmarks",
-  "main": "dist/Leaflet.Bookmarks.min.js",
+  "main": "dist/Leaflet.Control.Bookmarks.min.js",
   "scripts": {
     "test": "mocha-puppeteer test/*.test.js",
     "start": "npm run watch & serve -p 3001",
@@ -34,7 +34,7 @@
     "@rollup/plugin-node-resolve": "^7.1.1",
     "chai": "^4.2.0",
     "leaflet-contextmenu": "^1.4.0",
-    "leaflet-modal": "^0.1.0",
+    "leaflet-modal": "^0.2.0",
     "less": "^2.1.1",
     "lessc": "^1.0.2",
     "mocha": "^7.1.0",
@@ -47,6 +47,6 @@
     "tape": "^4.0.0"
   },
   "dependencies": {
-    "leaflet": "^0.7.3"
+    "leaflet": "^1.6.0"
   }
 }

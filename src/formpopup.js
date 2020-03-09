@@ -16,9 +16,7 @@ const modes = {
  */
 export default L.Popup.extend( /** @lends FormPopup.prototype */ {
 
-  statics: {
-    modes: modes
-  },
+  statics: { modes },
 
   /**
    * @type {Object}
@@ -72,8 +70,6 @@ export default L.Popup.extend( /** @lends FormPopup.prototype */ {
    * @constructor
    */
   initialize: function(options, source, control, bookmark) {
-    options.offset = this._calculateOffset(source, {});
-
     /**
      * @type {Object}
      */
@@ -131,21 +127,6 @@ export default L.Popup.extend( /** @lends FormPopup.prototype */ {
     L.DomEvent.preventDefault(evt);
     this._showMenu();
     this._close();
-  },
-
-  /**
-   * Correct offset from marker
-   * @param  {L.Marker} source
-   * @param  {Object}   options
-   * @return {L.Point}
-   */
-  _calculateOffset: function(source, options) {
-    let anchor = L.point(source.options.icon.options.popupAnchor || [0, 0]);
-    anchor = anchor.add(this.options.offset);
-
-    if (options && options.offset) anchor = anchor.add(options.offset);
-
-    return anchor;
   },
 
   /**
@@ -263,13 +244,14 @@ export default L.Popup.extend( /** @lends FormPopup.prototype */ {
    * @return {Object}
    */
   _getBookmarkData: function() {
-    if (this.options.getBookmarkData) {
-      return this.options.getBookmarkData.call(this);
+    const options = this.options;
+    if (options.getBookmarkData) {
+      return options.getBookmarkData.call(this);
     }
     const input = this._contentNode.querySelector('.' +
-      this.options.templateOptions.inputClass);
+      options.templateOptions.inputClass);
     const idInput = this._contentNode.querySelector('.' +
-      this.options.templateOptions.idInputClass);
+      options.templateOptions.idInputClass);
     return {
       latlng: this._source.getLatLng(),
       zoom: this._map.getZoom(),

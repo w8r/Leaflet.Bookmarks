@@ -1,5 +1,5 @@
 /**
- * Leaflet.Bookmarks v0.3.0
+ * L.Control.Bookmarks v0.4.0
  * Leaflet plugin for user-generated bookmarks
  *
  * @author Alexander Milevski
@@ -10,7 +10,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('leaflet')) :
   typeof define === 'function' && define.amd ? define(['leaflet'], factory) :
-  (global = global || self, (global.Leaflet = global.Leaflet || {}, global.Leaflet.Bookmarks = factory(global.L)));
+  (global = global || self, (global.L = global.L || {}, global.L.Control = global.L.Control || {}, global.L.Control.Bookmarks = factory(global.L)));
 }(this, (function (L) { 'use strict';
 
   L = L && Object.prototype.hasOwnProperty.call(L, 'default') ? L['default'] : L;
@@ -303,9 +303,7 @@
    */
   var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
 
-    statics: {
-      modes: modes
-    },
+    statics: { modes: modes },
 
     /**
      * @type {Object}
@@ -359,8 +357,6 @@
      * @constructor
      */
     initialize: function(options, source, control, bookmark) {
-      options.offset = this._calculateOffset(source, {});
-
       /**
        * @type {Object}
        */
@@ -418,21 +414,6 @@
       L.DomEvent.preventDefault(evt);
       this._showMenu();
       this._close();
-    },
-
-    /**
-     * Correct offset from marker
-     * @param  {L.Marker} source
-     * @param  {Object}   options
-     * @return {L.Point}
-     */
-    _calculateOffset: function(source, options) {
-      var anchor = L.point(source.options.icon.options.popupAnchor || [0, 0]);
-      anchor = anchor.add(this.options.offset);
-
-      if (options && options.offset) { anchor = anchor.add(options.offset); }
-
-      return anchor;
     },
 
     /**
@@ -550,13 +531,14 @@
      * @return {Object}
      */
     _getBookmarkData: function() {
-      if (this.options.getBookmarkData) {
-        return this.options.getBookmarkData.call(this);
+      var options = this.options;
+      if (options.getBookmarkData) {
+        return options.getBookmarkData.call(this);
       }
       var input = this._contentNode.querySelector('.' +
-        this.options.templateOptions.inputClass);
+        options.templateOptions.inputClass);
       var idInput = this._contentNode.querySelector('.' +
-        this.options.templateOptions.idInputClass);
+        options.templateOptions.idInputClass);
       return {
         latlng: this._source.getLatLng(),
         zoom: this._map.getZoom(),
@@ -1629,4 +1611,4 @@
   return Bookmarks;
 
 })));
-//# sourceMappingURL=Leaflet.Bookmarks.js.map
+//# sourceMappingURL=L.Control.Bookmarks.js.map

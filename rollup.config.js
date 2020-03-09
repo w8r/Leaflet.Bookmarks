@@ -5,7 +5,7 @@ import { terser } from 'rollup-plugin-terser';
 
 import { version, author, license, description } from './package.json';
 
-const moduleName = 'Leaflet.Bookmarks';
+const moduleName = 'L.Control.Bookmarks';
 
 const banner = `\
 /**

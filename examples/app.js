@@ -3,9 +3,7 @@ import '../index';
 import 'leaflet-contextmenu';
 import 'leaflet-modal';
 
-L.Icon.Default.imagePath = "http://cdn.leafletjs.com/leaflet-0.7/images";
-
-var map = window.map = new L.Map('map', {
+const map = window.map = new L.Map('map', {
   contextmenu: true,
   contextmenuItems: [{
     text: 'Bookmark this position',
@@ -47,8 +45,7 @@ const bookmarksControl = new L.Control.Bookmarks({
 
       width: 300,
 
-      onShow: function(evt) {
-        var modal = evt.modal;
+      onShow: function({ modal }) {
         L.DomEvent
           .on(modal._container.querySelector('.modal-ok'), 'click', function() {
             modal.hide();
