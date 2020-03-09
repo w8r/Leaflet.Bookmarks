@@ -1,1 +1,0 @@
-$_mod.run("/leaflet-bookmarks$0.2.5/test/bookmarks.test");
