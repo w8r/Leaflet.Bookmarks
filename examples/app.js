@@ -1,18 +1,16 @@
-var L = global.L || require('leaflet');
-require('../index');
-require('../bower_components/Leaflet.contextmenu/dist/leaflet.contextmenu.js');
-require('leaflet-modal');
+import L from 'leaflet';
+import '../index';
+import 'leaflet-contextmenu';
+import 'leaflet-modal';
 
 L.Icon.Default.imagePath = "http://cdn.leafletjs.com/leaflet-0.7/images";
 
-var map = global.map = new L.Map('map', {
+var map = window.map = new L.Map('map', {
   contextmenu: true,
   contextmenuItems: [{
     text: 'Bookmark this position',
     callback: function(evt) {
-      this.fire('bookmark:new', {
-        latlng: evt.latlng
-      });
+      this.fire('bookmark:new', { latlng: evt.latlng });
     }
   }]
 }).setView([22.2670, 114.188], 13);
@@ -27,7 +25,7 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 // });
 // map.addControl(bookmarksControl);
 
-bookmarksControl = global.bookmarksControlLeft = new L.Control.Bookmarks({
+const bookmarksControl = new L.Control.Bookmarks({
   position: 'topleft',
   onRemove: function(bookmark, callback) {
     map.fire('modal', {
@@ -64,4 +62,6 @@ bookmarksControl = global.bookmarksControlLeft = new L.Control.Bookmarks({
     });
   },
 });
+
 map.addControl(bookmarksControl);
+

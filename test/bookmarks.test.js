@@ -1,13 +1,12 @@
 "use strict";
 
-require('phantomjs-polyfill');
 var L = require('leaflet');
-var Bookmarks = require('../index');
-var tape = require('tape');
+var Bookmarks = require('../dist/Leaflet.Bookmarks.js');
+var { assert } = require('chai');
 
-tape.test('L.Bookmarks.FormPopup', function(t) {
+describe('L.Bookmarks.FormPopup', () => {
 
-  var container = L.DomUtil.create('div', 'map', document.body);
+  const container = L.DomUtil.create('div', 'map', document.body);
   L.Icon.Default.imagePath = "http://cdn.leafletjs.com/leaflet-0.7/images";
 
   var map = new L.Map(container, {}).setView([22.2670, 114.188], 13);
@@ -48,79 +47,58 @@ tape.test('L.Bookmarks.FormPopup', function(t) {
     });
     map.addControl(bookmarksControl);
 
-    t.test('constructor', function(t) {
+    it('constructor', () => {
       var coord = getCoord();
-      map.fire('bookmark:new', {
-        latlng: coord
-      });
-      t.ok(bookmarksControl._marker, 'marker is present');
-      t.ok(bookmarksControl._popup, 'popup is present');
-      t.ok(coord.equals(bookmarksControl._marker.getLatLng()), 'marker on right coordinate');
-      t.ok(coord.equals(bookmarksControl._popup.getLatLng()), 'popup on right coordinate');
+      map.fire('bookmark:new', { latlng: coord });
+
+      assert.ok(bookmarksControl._marker, 'marker is present');
+      assert.ok(bookmarksControl._popup, 'popup is present');
+      assert.ok(coord.equals(bookmarksControl._marker.getLatLng()), 'marker on right coordinate');
+      assert.ok(coord.equals(bookmarksControl._popup.getLatLng()), 'popup on right coordinate');
       bookmarksControl._popup._close();
-      t.end();
     });
 
-    t.test('add bookmark', function(t) {
+    it('add bookmark', () => {
       var bookmark = getBookmark();
       var coord = bookmark.latlng;
       var id = bookmark.id;
-      map.fire('bookmark:add', {
-        data: bookmark
-      });
+      map.fire('bookmark:add', { data: bookmark });
 
-      t.test('added', function(t) {
-        t.ok(bookmarksControl._popup, 'showed popup');
-        t.equal(bookmarksControl._popup._bookmark, bookmark, 'popup linked to bookmark');
-        t.ok(bookmarksControl._list.querySelector("[data-id='" + id + "']"), 'in list')
-        t.equal(bookmarksControl.getData().filter(function(b) {
-          return b.id === id;
-        }).length, 1, 'in data');
-        bookmarksControl._storage.getItem(id, function(item) {
-          t.ok(item, 'in storage');
-          t.equal(item.name, 'Bookmark ' + id, 'correct name');
-          t.equal(item.custom_key, 'custom value ' + id, 'custom value stored');
-        });
-        t.end();
+      assert.ok(bookmarksControl._popup, 'showed popup');
+      assert.equal(bookmarksControl._popup._bookmark, bookmark, 'popup linked to bookmark');
+      assert.ok(bookmarksControl._list.querySelector("[data-id='" + id + "']"), 'in list')
+      assert.equal(bookmarksControl.getData().filter((b) => b.id === id).length, 1, 'in data');
+      bookmarksControl._storage.getItem(id, function(item) {
+        assert.ok(item, 'in storage');
+        assert.equal(item.name, 'Bookmark ' + id, 'correct name');
+        assert.equal(item.custom_key, 'custom value ' + id, 'custom value stored');
       });
-
-      t.end();
     });
 
-    t.test('remove bookmark', function(t) {
+    it('remove bookmark', () => {
       var bookmark = getBookmark();
-      map.fire('bookmark:add', {
-        data: bookmark
+      map.fire('bookmark:add', { data: bookmark });
+      assert.notEqual(bookmarksControl.getData().indexOf(bookmark), -1, 'stored');
+      assert.ok(bookmarksControl._popup, 'popup on the map');
+
+      map.fire('bookmark:remove', { data: bookmark });
+
+      assert.notOk(map.hasLayer(bookmarksControl._marker), 'marker hidden');
+      assert.notOk(map.hasLayer(bookmarksControl._popup), 'popup hidden');
+
+      assert.equal(bookmarksControl.getData().indexOf(bookmark), -1, 'removed from data');
+      bookmarksControl._storage.getItem(bookmark.id, (item) => {
+        assert.notOk(item, 'removed from storage');
       });
-      t.notEqual(bookmarksControl.getData().indexOf(bookmark), -1, 'stored');
-      t.ok(bookmarksControl._popup, 'popup on the map');
-
-      map.fire('bookmark:remove', {
-        data: bookmark
-      });
-
-      t.notOk(map.hasLayer(bookmarksControl._marker), 'marker hidden');
-      t.notOk(map.hasLayer(bookmarksControl._popup), 'popup hidden');
-
-      t.equal(bookmarksControl.getData().indexOf(bookmark), -1, 'removed from data');
-      bookmarksControl._storage.getItem(bookmark.id, function(item) {
-        t.notOk(item, 'removed from storage');
-      });
-
-      t.end();
     });
 
-    t.test('edit bookmark', function(t) {
+    it('edit bookmark', () => {
       var bookmark = getBookmark();
       var coords = new L.LatLng(bookmark.latlng.lat, bookmark.latlng.lng);
       var name = bookmark.name.toString();
       var id = bookmark.id;
-      map.fire('bookmark:add', {
-        data: bookmark
-      });
-      map.fire('bookmark:edit', {
-        data: bookmark
-      });
+      map.fire('bookmark:add', { data: bookmark });
+      map.fire('bookmark:edit', { data: bookmark });
       var input = bookmarksControl._popup
         ._contentNode.querySelector('input[type=text]');
       var suffix = ' ' + uid();
@@ -130,23 +108,19 @@ tape.test('L.Bookmarks.FormPopup', function(t) {
       bookmarksControl._marker.fire('dragstart').fire('dragend');
 
       var form = bookmarksControl._popup._contentNode.querySelector('form');
-      map.once('bookmark:saved', function(evt) {
+      map.once('bookmark:saved', (evt) => {
         var item = evt.data;
-        t.notEqual(item.name, name, 'name changed');
-        t.equal(item.name, name + suffix, 'name stored correctly');
-        t.equal(id, item.id, 'same id');
-        t.ok(item.custom_key, 'other keys not lost');
-        t.ok(newCoord.lng === item.latlng[1] &&
+        assert.notEqual(item.name, name, 'name changed');
+        assert.equal(item.name, name + suffix, 'name stored correctly');
+        assert.equal(id, item.id, 'same id');
+        assert.ok(item.custom_key, 'other keys not lost');
+        assert.ok(newCoord.lng === item.latlng[1] &&
           newCoord.lat === item.latlng[0], 'new coord saved');
       });
 
       bookmarksControl._popup._onSubmit({});
-      t.end();
     });
 
-    if (localStorage) {
-      localStorage.clear();
-    }
-    t.end();
+    if (localStorage) localStorage.clear();
   });
 });

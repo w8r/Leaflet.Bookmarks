@@ -120,7 +120,7 @@
   -webkit-transition: opacity 0.15s linear;
 }
 .leaflet-bookmarks-control .bookmarks-list .bookmark-remove:hover {
-  color: #0078a8;
+  color: #0078A8;
   opacity: 1;
   filter: alpha(opacity=100);
 }
@@ -181,7 +181,7 @@
   text-decoration: underline;
 }
 .leaflet-bookmarks-control .add-bookmark-button:hover .plus {
-  background: #0078a8;
+  background: #0078A8;
 }
 .leaflet-bookmarks-control.expanded .list-with-button {
   padding-bottom: 30px;
@@ -244,8 +244,8 @@
   width: 12px;
 }
 .leaflet-bookmarks-form-popup .leaflet-popup-menu-button:hover {
-  border-bottom-color: #0078a8;
-  border-top-color: #0078a8;
+  border-bottom-color: #0078A8;
+  border-top-color: #0078A8;
 }
 .leaflet-bookmarks-form-popup .nav {
   list-style: none;
@@ -259,7 +259,7 @@
   line-height: 2em;
   text-decoration: none;
   border-bottom: 1px solid #dddddd;
-  color: #0078a8;
+  color: #0078A8;
 }
 .leaflet-bookmarks-form-popup .nav .nav-item:hover {
   background: #dfdfdf;

@@ -1,8 +1,7 @@
-var L = global.L || require('leaflet');
-var substitute = require('./string').substitute;
-var unique = require('./string').unique;
+import L from 'leaflet';
+import { unique, substitute } from './string';
 
-var modes = {
+const modes = {
   CREATE: 1,
   UPDATE: 2,
   SHOW: 3,
@@ -15,7 +14,7 @@ var modes = {
  * @class  FormPopup
  * @extends {L.Popup}
  */
-var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
+export default L.Popup.extend( /** @lends FormPopup.prototype */ {
 
   statics: {
     modes: modes
@@ -108,7 +107,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     if (this.options.mode === modes.SHOW &&
       (this._bookmark.editable || this._bookmark.removable)) {
 
-      var menuButton = this._menuButton =
+      const menuButton = this._menuButton =
         L.DomUtil.create('a', 'leaflet-popup-menu-button');
       this._container.insertBefore(menuButton, this._closeButton);
       menuButton.href = '#menu';
@@ -122,9 +121,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * Show options menu
    */
   _showMenu: function() {
-    this._map.fire('bookmark:options', {
-      data: this._bookmark
-    });
+    this._map.fire('bookmark:options', { data: this._bookmark });
   },
 
   /**
@@ -143,12 +140,10 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * @return {L.Point}
    */
   _calculateOffset: function(source, options) {
-    var anchor = L.point(source.options.icon.options.popupAnchor || [0, 0]);
+    let anchor = L.point(source.options.icon.options.popupAnchor || [0, 0]);
     anchor = anchor.add(this.options.offset);
 
-    if (options && options.offset) {
-      anchor = anchor.add(options.offset);
-    }
+    if (options && options.offset) anchor = anchor.add(options.offset);
 
     return anchor;
   },
@@ -158,19 +153,19 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * @override
    */
   _updateContent: function() {
-    var content;
+    let content;
     if (this.options.mode === modes.SHOW) {
       content = this._control._getPopupContent(this._bookmark);
     } else {
-      var template = this.options.template;
-      var submitText = this.options.templateOptions.submitTextCreate;
+      let template = this.options.template;
+      let submitText = this.options.templateOptions.submitTextCreate;
       if (this.options.mode === modes.OPTIONS) {
         template = this.options.menuTemplate;
       }
       if (this.options.mode === modes.UPDATE) {
         submitText = this.options.templateOptions.submitTextEdit;
       }
-      var modeClass = [];
+      const modeClass = [];
       if (this._bookmark.editable) {
         modeClass.push(this.options.templateOptions.editableClass);
       }
@@ -200,9 +195,9 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       this.options.mode === modes.CREATE ||
       this.options.mode === modes.UPDATE
     ) {
-      var form = this._contentNode.querySelector('.' +
+      const form = this._contentNode.querySelector('.' +
         this.options.templateOptions.formClass);
-      var input = form.querySelector('.' +
+      const input = form.querySelector('.' +
         this.options.templateOptions.inputClass);
 
       L.DomEvent.on(form, 'submit', this._onSubmit, this);
@@ -224,11 +219,11 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    * Set focus at the end of input
    */
   _setFocus: function() {
-    var input = this._contentNode.querySelector('.' +
+    const input = this._contentNode.querySelector('.' +
       this.options.templateOptions.inputClass);
     // Multiply by 2 to ensure the cursor always ends up at the end;
     // Opera sometimes sees a carriage return as 2 characters.
-    var strLength = input.value.length * 2;
+    const strLength = input.value.length * 2;
     input.focus();
     input.setSelectionRange(strLength, strLength);
   },
@@ -239,9 +234,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    */
   _onEditClick: function(evt) {
     L.DomEvent.preventDefault(evt);
-    this._map.fire('bookmark:edit', {
-      data: this._bookmark
-    });
+    this._map.fire('bookmark:edit', { data: this._bookmark });
     this._close();
   },
 
@@ -251,9 +244,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    */
   _onRemoveClick: function(evt) {
     L.DomEvent.preventDefault(evt);
-    this._map.fire('bookmark:remove', {
-      data: this._bookmark
-    });
+    this._map.fire('bookmark:remove', { data: this._bookmark });
     this._close();
   },
 
@@ -263,9 +254,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
    */
   _onCancelClick: function(evt) {
     L.DomEvent.preventDefault(evt);
-    this._map.fire('bookmark:show', {
-      data: this._bookmark
-    });
+    this._map.fire('bookmark:show', { data: this._bookmark });
     this._close();
   },
 
@@ -276,18 +265,17 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   _getBookmarkData: function() {
     if (this.options.getBookmarkData) {
       return this.options.getBookmarkData.call(this);
-    } else {
-      var input = this._contentNode.querySelector('.' +
-        this.options.templateOptions.inputClass);
-      var idInput = this._contentNode.querySelector('.' +
-        this.options.templateOptions.idInputClass);
-      return {
-        latlng: this._source.getLatLng(),
-        zoom: this._map.getZoom(),
-        name: input.value,
-        id: idInput.value || unique()
-      };
     }
+    const input = this._contentNode.querySelector('.' +
+      this.options.templateOptions.inputClass);
+    const idInput = this._contentNode.querySelector('.' +
+      this.options.templateOptions.idInputClass);
+    return {
+      latlng: this._source.getLatLng(),
+      zoom: this._map.getZoom(),
+      name: input.value,
+      id: idInput.value || unique()
+    };
   },
 
   /**
@@ -297,7 +285,7 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   _onSubmit: function(evt) {
     L.DomEvent.stop(evt);
 
-    var input = this._contentNode.querySelector('.' +
+    const input = this._contentNode.querySelector('.' +
       this.options.templateOptions.inputClass);
     input.classList.remove(this.options.templateOptions.inputErrorClass);
 
@@ -305,23 +293,17 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
       input.value = unique(this.options.generateNamesPrefix);
     }
 
-    var validate = this.options.validateInput || function() {
-      return true;
-    };
+    const validate = this.options.validateInput || (() => true);
 
     if (input.value !== '' && validate.call(this, input.value)) {
-      var bookmark = L.Util.extend({}, this._bookmark, this._getBookmarkData());
-      var map = this._map;
+      const bookmark = L.Util.extend({}, this._bookmark, this._getBookmarkData());
+      const map = this._map;
 
       this._close();
       if (this.options.mode === modes.CREATE) {
-        map.fire('bookmark:add', {
-          data: bookmark
-        });
+        map.fire('bookmark:add', { data: bookmark });
       } else {
-        map.fire('bookmark:edited', {
-          data: bookmark
-        });
+        map.fire('bookmark:edited', { data: bookmark });
       }
     } else {
       input.classList.add(this.options.templateOptions.inputErrorClass);
@@ -336,10 +318,9 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
   formatCoords: function(coords, zoom) {
     if (this.options.formatCoords) {
       return this.options.formatCoords.call(this, coords, zoom);
-    } else {
-      return [coords.lat.toFixed(4), coords.lng.toFixed(4), zoom]
-        .join(',&nbsp;');
     }
+    return [coords.lat.toFixed(4), coords.lng.toFixed(4), zoom]
+      .join(',&nbsp;');
   },
 
   /**
@@ -381,5 +362,3 @@ var FormPopup = L.Popup.extend( /** @lends FormPopup.prototype */ {
     this.update();
   }
 });
-
-module.exports = FormPopup;

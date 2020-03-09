@@ -3,9 +3,10 @@
 .project
 *.properties
 .idea/*
+.cache
 .settings/*
-buildlogs/*
-node_modules/*
+buildlogs
+node_modules
 bower_components/*
 docs/*
 

@@ -1,10 +1,10 @@
-var L = global.L || require('leaflet');
+import L from 'leaflet';
 
 /**
  * Courtesy of https://github.com/component/matches-selector
  */
-var matchesSelector = (function(ElementPrototype) {
-  var matches = ElementPrototype.matches ||
+const matchesSelector = ((ElementPrototype) => {
+  const matches = ElementPrototype.matches ||
     ElementPrototype.webkitMatchesSelector ||
     ElementPrototype.mozMatchesSelector ||
     ElementPrototype.msMatchesSelector ||
@@ -51,15 +51,11 @@ function closest(element, selector, checkSelf, root) {
   // Make sure `element !== document` and `element != null`
   // otherwise we get an illegal invocation
   while ((element = element.parentNode) && element !== document) {
-    if (matchesSelector(element, selector)) {
-      return element
-    }
+    if (matchesSelector(element, selector)) return element
     // After `matches` on the edge case that
     // the selector matches the root
     // (when the root is not the document)
-    if (element === root) {
-      return null;
-    }
+    if (element === root) return null;
   }
 }
 
@@ -74,8 +70,8 @@ function closest(element, selector, checkSelf, root) {
  * @return {Function}
  */
 L.DomEvent.delegate = function(el, selector, type, fn, bind) {
-  return L.DomEvent.on(el, type, function(evt) {
-    var target = evt.target || evt.srcElement;
+  return L.DomEvent.on(el, type, (evt) => {
+    const target = evt.target || evt.srcElement;
     evt.delegateTarget = closest(target, selector, true, el);
     if (evt.delegateTarget && !evt.propagationStopped) {
       fn.call(bind || el, evt);
