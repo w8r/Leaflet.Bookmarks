@@ -1,7 +1,7 @@
 "use strict";
 
 var L = require('leaflet');
-var Bookmarks = require('../dist/Leaflet.Bookmarks.js');
+var Bookmarks = require('../dist/L.Control.Bookmarks.js');
 var { assert } = require('chai');
 
 describe('L.Bookmarks.FormPopup', () => {
