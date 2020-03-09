@@ -1,5 +1,5 @@
 /**
- * Leaflet.Bookmarks v0.2.5
+ * Leaflet.Bookmarks v0.3.0
  * Leaflet plugin for user-generated bookmarks
  *
  * @author Alexander Milevski
