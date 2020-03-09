@@ -11,5 +11,6 @@ bower_components/*
 docs/*
 
 build.properties
+.mocha-puppeteer
 
 test/lib/
