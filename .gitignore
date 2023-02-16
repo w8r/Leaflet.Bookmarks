@@ -14,3 +14,4 @@ build.properties
 .mocha-puppeteer
 
 test/lib/
+dist

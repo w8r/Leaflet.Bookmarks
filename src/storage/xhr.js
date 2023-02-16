@@ -5,9 +5,7 @@
  * @constructor
  */
 export default class XHR {
-
   constructor(options) {
-
     /**
      * @type {*}
      */
@@ -23,7 +21,7 @@ export default class XHR {
    * Create transport
    * @return {*}
    */
-  createTransport() {};
+  createTransport() {}
 
   /**
    * Create request url
@@ -32,16 +30,20 @@ export default class XHR {
    * @param  {String} key
    * @return {String}
    */
-  getUrl (requestType, type, key) {}
+  getUrl(requestType, type, key) {}
 
   /**
    * @param  {String}   key
    * @param  {Function} callback
    */
-  getItem (key, callback) {
-    this._transport.get(this._getUrl, {
-      key: key
-    }, callback);
+  getItem(key, callback) {
+    this._transport.get(
+      this._getUrl,
+      {
+        key: key,
+      },
+      callback
+    );
   }
 
   /**
@@ -49,27 +51,35 @@ export default class XHR {
    * @param {*}        item
    * @param {Function} callback
    */
-  setItem (key, item, callback) {
-    this._transport.post(this._postUrl, {
-      key: item
-    }, callback);
+  setItem(key, item, callback) {
+    this._transport.post(
+      this._postUrl,
+      {
+        key: item,
+      },
+      callback
+    );
   }
 
   /**
    * @param  {String}   key
    * @param  {Function} callback
    */
-  removeItem (key, callback) {
-    this._transport.delete(this._deleteUrl, {
-      key: key
-    }, callback);
+  removeItem(key, callback) {
+    this._transport.delete(
+      this._deleteUrl,
+      {
+        key: key,
+      },
+      callback
+    );
   }
 
   /**
    * @param  {String=}  prefix
    * @param  {Function} callback
    */
-  getAllItems (callback) {
+  getAllItems(callback) {
     this._transport.get(this._getUrl, null, callback);
   }
 }

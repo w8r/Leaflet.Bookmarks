@@ -1,8 +1,8 @@
-import { unique } from './string';
+import { unique } from "./string";
 
-import XHR from './storage/xhr';
-import GlobalStorage from './storage/global';
-import LocalStorage from './storage/localstorage';
+import XHR from "./storage/xhr";
+import GlobalStorage from "./storage/global";
+import LocalStorage from "./storage/localstorage";
 
 /**
  * @const
@@ -11,7 +11,7 @@ import LocalStorage from './storage/localstorage';
 export const EngineType = {
   // XHR: 1, // we don't have it included
   GLOBALSTORAGE: 2,
-  LOCALSTORAGE: 3
+  LOCALSTORAGE: 3,
 };
 
 /**
@@ -19,10 +19,8 @@ export const EngineType = {
  * @param {String} name
  */
 export default class Storage {
-
   constructor(name, engineType) {
-
-    if (typeof name !== 'string') {
+    if (typeof name !== "string") {
       engineType = name;
       name = unique();
     }
@@ -35,8 +33,11 @@ export default class Storage {
     /**
      * @type {Storage.Engine}
      */
-    this._engine = Storage.createEngine(engineType,
-      this._name, Array.prototype.slice.call(arguments, 2));
+    this._engine = Storage.createEngine(
+      engineType,
+      this._name,
+      Array.prototype.slice.call(arguments, 2)
+    );
   }
 
   /**
@@ -45,7 +46,7 @@ export default class Storage {
    * @param  {String} prefix
    * @return {Storage.Engine}
    */
-  static createEngine (type, prefix, args) {
+  static createEngine(type, prefix, args) {
     if (type === EngineType.GLOBALSTORAGE) {
       return new GlobalStorage(prefix);
     }
@@ -59,7 +60,7 @@ export default class Storage {
    * @param {*}        item
    * @param {Function} callback
    */
-  setItem (key, item, callback) {
+  setItem(key, item, callback) {
     this._engine.setItem(key, item, callback);
     return this;
   }
@@ -68,7 +69,7 @@ export default class Storage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  getItem (key, callback) {
+  getItem(key, callback) {
     this._engine.getItem(key, callback);
     return this;
   }
@@ -76,7 +77,7 @@ export default class Storage {
   /**
    * @param  {Function} callback
    */
-  getAllItems (callback) {
+  getAllItems(callback) {
     this._engine.getAllItems(callback);
   }
 
@@ -84,8 +85,7 @@ export default class Storage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  removeItem (key, callback) {
+  removeItem(key, callback) {
     this._engine.removeItem(key, callback);
   }
 }
-
