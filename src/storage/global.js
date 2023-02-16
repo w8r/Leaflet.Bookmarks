@@ -9,8 +9,7 @@ const data = {};
  * @constructor
  */
 export default class GlobalStorage {
-  constructor (prefix) {
-
+  constructor(prefix) {
     /**
      * @type {String}
      */
@@ -21,7 +20,7 @@ export default class GlobalStorage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  getItem (key, callback) {
+  getItem(key, callback) {
     callback(data[this._prefix + key]);
   }
 
@@ -30,7 +29,7 @@ export default class GlobalStorage {
    * @param {*}        item
    * @param {Function} callback
    */
-  setItem (key, item, callback) {
+  setItem(key, item, callback) {
     data[this._prefix + key] = item;
     callback(item);
   }
@@ -38,7 +37,7 @@ export default class GlobalStorage {
   /**
    * @param  {Function} callback
    */
-  getAllItems (callback) {
+  getAllItems(callback) {
     const items = [];
     for (const key in data) {
       if (data.hasOwnProperty(key) && key.indexOf(this_prefix) === 0) {
@@ -52,7 +51,7 @@ export default class GlobalStorage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  removeItem (key, callback) {
+  removeItem(key, callback) {
     this.getItem(key, (item) => {
       if (item) {
         delete data[this._prefix + key];

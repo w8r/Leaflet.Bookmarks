@@ -8,8 +8,7 @@ const JSON_RE = /^[\{\[](.)*[\]\}]$/;
  * LocalStoarge based storage
  */
 export default class LocalStorage {
-
-  constructor (prefix) {
+  constructor(prefix) {
     /**
      * @type {String}
      */
@@ -25,7 +24,7 @@ export default class LocalStorage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  getItem (key, callback) {
+  getItem(key, callback) {
     let item = this._storage.getItem(this._prefix + key);
     if (item && JSON_RE.test(item)) {
       item = JSON.parse(item);
@@ -36,12 +35,14 @@ export default class LocalStorage {
   /**
    * @param  {Function} callback
    */
-  getAllItems (callback) {
+  getAllItems(callback) {
     const items = [];
     const prefixLength = this._prefix.length;
     for (const key in this._storage) {
-      if (this._storage.getItem(key) !== null &&
-        key.indexOf(this._prefix) === 0) {
+      if (
+        this._storage.getItem(key) !== null &&
+        key.indexOf(this._prefix) === 0
+      ) {
         this.getItem(key.substring(prefixLength), (item) => items.push(item));
       }
     }
@@ -52,7 +53,7 @@ export default class LocalStorage {
    * @param  {String}   key
    * @param  {Function} callback
    */
-  removeItem (key, callback) {
+  removeItem(key, callback) {
     const self = this;
     this.getItem(key, (item) => {
       this._storage.removeItem(self._prefix + key);
@@ -65,10 +66,10 @@ export default class LocalStorage {
    * @param  {*}        item
    * @param  {Function} callback
    */
-  setItem (key, item, callback) {
+  setItem(key, item, callback) {
     let itemStr = item.toString();
-    if (itemStr === '[object Object]') {
-      itemStr = JSON.stringify(item)
+    if (itemStr === "[object Object]") {
+      itemStr = JSON.stringify(item);
     }
     this._storage.setItem(this._prefix + key, itemStr);
     callback(item);

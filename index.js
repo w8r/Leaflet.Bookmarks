@@ -1,5 +1,5 @@
-import L from 'leaflet';
-import Bookmarks from './src/bookmarks';
+import L from "leaflet";
+import Bookmarks from "./src/bookmarks";
 
 L.Control.Bookmarks = Bookmarks;
 

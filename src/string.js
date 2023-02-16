@@ -7,26 +7,26 @@
  * @return {String}
  */
 export function substitute(str, object, regexp) {
-  return str.replace(regexp || (/{{([\s\S]+?)}}/g), function(match, name) {
+  return str.replace(regexp || /{{([\s\S]+?)}}/g, function (match, name) {
     name = trim(name);
 
-    if (name.indexOf('.') === -1) {
-      if (match.charAt(0) == '\\') return match.slice(1);
-      return (object[name] != null) ? object[name] : '';
-
-    } else { // nested
+    if (name.indexOf(".") === -1) {
+      if (match.charAt(0) == "\\") return match.slice(1);
+      return object[name] != null ? object[name] : "";
+    } else {
+      // nested
       let result = object;
-      name = name.split('.');
+      name = name.split(".");
       for (var i = 0, len = name.length; i < len; i++) {
         if (name[i] in result) result = result[name[i]];
-        else return '';
+        else return "";
       }
       return result;
     }
   });
 }
 
-const alpha = 'abcdefghijklmnopqrstuvwxyz';
+const alpha = "abcdefghijklmnopqrstuvwxyz";
 /**
  * Unique string from date. Puts character at the beginning,
  * for the sake of good manners
@@ -34,8 +34,10 @@ const alpha = 'abcdefghijklmnopqrstuvwxyz';
  * @return {String}
  */
 export function unique(prefix) {
-  return (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
-    (new Date()).getTime().toString(16);
+  return (
+    (prefix || alpha[Math.floor(Math.random() * alpha.length)]) +
+    new Date().getTime().toString(16)
+  );
 }
 
 /**
@@ -44,7 +46,7 @@ export function unique(prefix) {
  * @return {String}
  */
 export function trim(str) {
-  return str.replace(/^\s+|\s+$/g, '');
+  return str.replace(/^\s+|\s+$/g, "");
 }
 
 /**
@@ -53,5 +55,5 @@ export function trim(str) {
  * @return {String}
  */
 export function clean(str) {
-  return trim(str.replace(/\s+/g, ' '));
+  return trim(str.replace(/\s+/g, " "));
 }

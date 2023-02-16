@@ -1,18 +1,19 @@
-import L from 'leaflet';
+import L from "leaflet";
 
 /**
  * Courtesy of https://github.com/component/matches-selector
  */
 const matchesSelector = ((ElementPrototype) => {
-  const matches = ElementPrototype.matches ||
+  const matches =
+    ElementPrototype.matches ||
     ElementPrototype.webkitMatchesSelector ||
     ElementPrototype.mozMatchesSelector ||
     ElementPrototype.msMatchesSelector ||
     ElementPrototype.oMatchesSelector ||
     // hello IE
-    function(selector) {
+    function (selector) {
       var node = this,
-        parent = (node.parentNode || node.document),
+        parent = node.parentNode || node.document,
         nodes = parent.querySelectorAll(selector);
 
       for (var i = 0, len = nodes.length; i < len; ++i) {
@@ -26,7 +27,7 @@ const matchesSelector = ((ElementPrototype) => {
    * @param  {String} selector
    * @return {Boolean}
    */
-  return function(element, selector) {
+  return function (element, selector) {
     return matches.call(element, selector);
   };
 })(Element.prototype);
@@ -42,16 +43,18 @@ const matchesSelector = ((ElementPrototype) => {
  * @return {Element|Null}
  */
 function closest(element, selector, checkSelf, root) {
-  element = checkSelf ? {
-    parentNode: element
-  } : element
+  element = checkSelf
+    ? {
+        parentNode: element,
+      }
+    : element;
 
   root = root || document;
 
   // Make sure `element !== document` and `element != null`
   // otherwise we get an illegal invocation
   while ((element = element.parentNode) && element !== document) {
-    if (matchesSelector(element, selector)) return element
+    if (matchesSelector(element, selector)) return element;
     // After `matches` on the edge case that
     // the selector matches the root
     // (when the root is not the document)
@@ -69,7 +72,7 @@ function closest(element, selector, checkSelf, root) {
  *
  * @return {Function}
  */
-L.DomEvent.delegate = function(el, selector, type, fn, bind) {
+L.DomEvent.delegate = function (el, selector, type, fn, bind) {
   return L.DomEvent.on(el, type, (evt) => {
     const target = evt.target || evt.srcElement;
     evt.delegateTarget = closest(target, selector, true, el);
