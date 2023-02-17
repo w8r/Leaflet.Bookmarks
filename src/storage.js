@@ -9,7 +9,7 @@ import LocalStorage from "./storage/localstorage";
  * @enum {Number}
  */
 export const EngineType = {
-  // XHR: 1, // we don't have it included
+  // XHR: 1, // we don't have it included, it's a stub
   GLOBALSTORAGE: 2,
   LOCALSTORAGE: 3,
 };

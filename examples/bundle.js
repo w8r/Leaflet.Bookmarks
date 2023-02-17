@@ -1,5 +1,5 @@
 /**
- * L.Control.Bookmarks v0.4.0
+ * L.Control.Bookmarks v0.5.1
  * Leaflet plugin for user-generated bookmarks
  *
  * @author Alexander Milevski
@@ -14664,7 +14664,7 @@
 	 * @enum {Number}
 	 */
 	const EngineType = {
-	  // XHR: 1, // we don't have it included
+	  // XHR: 1, // we don't have it included, it's a stub
 	  GLOBALSTORAGE: 2,
 	  LOCALSTORAGE: 3,
 	};

@@ -1,8 +1,14 @@
 {
   "name": "leaflet-bookmarks",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Leaflet plugin for user-generated bookmarks",
-  "main": "dist/Leaflet.Control.Bookmarks.min.js",
+  "main": "dist/index.min.js",
+  "module": "dist/index.mjs",
+  "unpkg": "dist/index.min.js",
+  "jsdelivr": "dist/index.min.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "mocha-puppeteer test/*.test.js",
     "start": "npm run watch & serve -p 3001",
