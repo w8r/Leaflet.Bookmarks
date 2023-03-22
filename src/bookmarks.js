@@ -121,6 +121,8 @@ export default L.Control.extend(
     /**
      * @param  {Object} options
      * @constructor
+     * @constructs Bookmarks
+     * @extends {L.Control}
      */
     initialize: function (options) {
       options = options || {};

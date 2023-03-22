@@ -59,9 +59,9 @@ export default [
     plugins: [resolve(), commonjs(), buble()],
   },
   {
-    input: "./examples/app.js",
+    input: "./docs/app.js",
     output: {
-      file: `examples/bundle.js`,
+      file: `docs/bundle.js`,
       name: moduleName,
       sourcemap: true,
       format: "iife",
