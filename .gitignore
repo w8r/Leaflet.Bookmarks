@@ -8,7 +8,6 @@
 buildlogs
 node_modules
 bower_components/*
-docs/*
 
 build.properties
 .mocha-puppeteer
